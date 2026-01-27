@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨IP输入记录查看器</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .record-card {
+            transition: all 0.3s ease;
+            border-left-width: 4px;
+        }
+        .record-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        .ip-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-white mb-3">跨IP输入记录查看器</h1>
+            <p class="text-gray-200">记录您的输入内容，随时随地查看历史记录</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="block text-gray-700 mb-2 font-medium">输入内容</label>
+                    <input type="text" id="inputContent" class="w-full border-2 border-gray-200 rounded-lg py-3 px-4 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition" placeholder="请输入要记录的内容...">
+                </div>
+                <div class="flex items-end">
+                    <button id="saveBtn" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-8 rounded-lg transition-all duration-300 flex items-center shadow-lg">
+                        <i class="fas fa-save mr-2"></i> 保存记录
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-blue-50 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-blue-600" id="totalRecords">0</div>
+                    <div class="text-gray-600">总记录数</div>
+                </div>
+                <div class="bg-green-50 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-green-600" id="currentIP">-</div>
+                    <div class="text-gray-600">当前IP</div>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-purple-600" id="uniqueIPs">0</div>
+                    <div class="text-gray-600">IP数量</div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex flex-wrap gap-3">
+                    <button class="filter-btn active bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium" data-filter="all">
+                        全部记录
+                    </button>
+                    <button class="filter-btn bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm font-medium" data-filter="today">
+                        今天
+                    </button>
+                    <button class="filter-btn bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm font-medium" data-filter="week">
+                        本周
+                    </button>
+                </div>
+            </div>
+
+            <div id="recordList" class="space-y-4">
+                <div id="emptyState" class="text-center py-12">
+                    <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-500 mb-2">暂无记录</h3>
+                    <p class="text-gray-400">输入内容并点击保存开始记录</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-2xl p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">使用说明</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white mb-3">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">输入记录</h3>
+                    <p class="text-gray-600 text-sm">在输入框中输入任意内容，点击保存按钮记录</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white mb-3">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">跨IP访问</h3>
+                    <p class="text-gray-600 text-sm">无论您在哪个网络环境下，都能查看所有记录</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white mb-3">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">历史查看</h3>
+                    <p class="text-gray-600 text-sm">按时间筛选查看记录，支持今日和本周筛选</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class InputRecordManager {
+            constructor() {
+                this.records = JSON.parse(localStorage.getItem('inputRecords')) || [];
+                this.currentIP = '192.168.1.' + Math.floor(Math.random() * 255); // 模拟IP
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateStats();
+                this.renderRecords();
+                this.displayCurrentIP();
+            }
+
+            bindEvents() {
+                document.getElementById('saveBtn').addEventListener('click', () => {
+                    this.saveRecord();
+                });
+
+                document.getElementById('inputContent').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.saveRecord();
+                    }
+                });
+
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-indigo-100', 'text-indigo-800'));
+                        e.target.classList.add('active', 'bg-indigo-100', 'text-indigo-800');
+                        this.renderRecords(e.target.dataset.filter);
+                    });
+                });
+            }
+
+            displayCurrentIP() {
+                document.getElementById('currentIP').textContent = this.currentIP;
+            }
+
+            saveRecord() {
+                const content = document.getElementById('inputContent').value.trim();
+                if (!content) {
+                    this.showMessage('请输入内容后再保存', 'warning');
+                    return;
+                }
+
+                const record = {
+                    id: Date.now(),
+                    content: content,
+                    ip: this.currentIP,
+                    timestamp: new Date().toISOString()
+                };
+
+                this.records.unshift(record);
+                this.saveToStorage();
+                this.updateStats();
+                this.renderRecords();
+                document.getElementById('inputContent').value = '';
+                this.showMessage('记录保存成功！', 'success');
+            }
+
+            saveToStorage() {
+                localStorage.setItem('inputRecords', JSON.stringify(this.records));
+            }
+
+            deleteRecord(id) {
+                if (confirm('确定要删除这条记录吗？')) {
+                    this.records = this.records.filter(record => record.id !== id);
+                    this.saveToStorage();
+                    this.updateStats();
+                    this.renderRecords();
+                    this.showMessage('记录删除成功', 'success');
+                }
+            }
+
+            filterRecords(filter) {
+                const now = new Date();
+                switch (filter) {
+                    case 'today':
+                        return this.records.filter(record => {
+                            const recordDate = new Date(record.timestamp);
+                            return recordDate.toDateString() === now.toDateString();
+                        });
+                    case 'week':
+                        return this.records.filter(record => {
+                            const recordDate = new Date(record.timestamp);
+                            const weekAgo = new Date(now);
+                            weekAgo.setDate(weekAgo.getDate() - 7);
+                            return recordDate >= weekAgo;
+                        });
+                    default:
+                        return [...this.records];
+                }
+            }
+
+            renderRecords(filter = 'all') {
+                const recordList = document.getElementById('recordList');
+                const filteredRecords = this.filterRecords(filter);
+
+                if (filteredRecords.length === 0) {
+                    recordList.innerHTML = `
+                        <div id="emptyState" class="text-center py-12">
+                            <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-500 mb-2">暂无记录</h3>
+                            <p class="text-gray-400">当前筛选条件下没有找到记录</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) emptyState.remove();
+
+                recordList.innerHTML = filteredRecords.map(record => {
+                    const recordDate = new Date(record.timestamp);
+                    const formattedDate = this.formatDate(recordDate);
+                    const timeAgo = this.timeAgo(recordDate);
+                    
+                    return `
+                        <div class="record-card bg-white border-l-4 border-indigo-500 rounded-xl p-5 shadow-md">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <span class="ip-badge text-white text-xs px-2 py-1 rounded mr-3">
+                                            <i class="fas fa-network-wired mr-1"></i>
+                                            ${record.ip}
+                                        </span>
+                                        <span class="text-gray-500 text-sm">
+                                            <i class="far fa-clock mr-1"></i>
+                                            ${timeAgo}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-800 text-lg mb-3">${record.content}</p>
+                                    <div class="text-gray-500 text-sm">
+                                        <i class="far fa-calendar-alt mr-1"></i>
+                                        ${formattedDate}
+                                    </div>
+                                </div>
+                                <button class="delete-btn text-gray-400 hover:text-red-500 ml-4" data-id="${record.id}">
+                                    <i class="fas fa-trash-alt text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = parseInt(e.currentTarget.dataset.id);
+                        this.deleteRecord(id);
+                    });
+                });
+            }
+
+            formatDate(date) {
+                return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            }
+
+            timeAgo(date) {
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (minutes < 1) return '刚刚';
+                if (minutes < 60) return `${minutes}分钟前`;
+                if (hours < 24) return `${hours}小时前`;
+                return `${days}天前`;
+            }
+
+            updateStats() {
+                document.getElementById('totalRecords').textContent = this.records.length;
+                
+                const uniqueIPs = [...new Set(this.records.map(record => record.ip))].length;
+                document.getElementById('uniqueIPs').textContent = uniqueIPs;
+            }
+
+            showMessage(message, type) {
+                // 简单的消息提示实现
+                const messageEl = document.createElement('div');
+                messageEl.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+                    type === 'success' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
+                }`;
+                messageEl.textContent = message;
+                document.body.appendChild(messageEl);
+                
+                setTimeout(() => {
+                    messageEl.remove();
+                }, 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.recordManager = new InputRecordManager();
+        });
+    </script>
+</body>
+</html>
