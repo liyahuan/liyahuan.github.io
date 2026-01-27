@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家庭待办事项管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .task-card {
+            transition: all 0.3s ease;
+            border-left-width: 4px;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .task-card.mine {
+            border-left-color: #4f46e5;
+        }
+        .task-card.child {
+            border-left-color: #10b981;
+        }
+        .task-completed {
+            opacity: 0.8;
+            background-color: #f9fafb;
+        }
+        .task-completed .task-title {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        #taskModal {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">家庭待办事项管理</h1>
+            <p class="text-gray-600">管理您和孩子的日常任务</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button id="addTaskBtn" class="flex-1 min-w-[200px] bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i> 添加待办事项
+                </button>
+                <div class="flex-1 min-w-[200px]">
+                    <select id="filterSelect" class="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">全部任务</option>
+                        <option value="pending">未完成</option>
+                        <option value="completed">已完成</option>
+                        <option value="mine">我的任务</option>
+                        <option value="child">孩子任务</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="taskList" class="space-y-4">
+                <!-- 任务列表将通过JavaScript动态生成 -->
+            </div>
+
+            <div id="emptyState" class="text-center py-12 hidden">
+                <i class="fas fa-clipboard-list text-5xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-500 mb-2">暂无待办事项</h3>
+                <p class="text-gray-400">点击"添加待办事项"开始规划您的任务</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">今日统计</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold text-blue-600" id="totalTasks">0</div>
+                    <div class="text-gray-600">总任务数</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold text-green-600" id="completedTasks">0</div>
+                    <div class="text-gray-600">已完成</div>
+                </div>
+                <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                    <div class="text-3xl font-bold text-yellow-600" id="pendingTasks">0</div>
+                    <div class="text-gray-600">待完成</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑任务模态框 -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">添加待办事项</h2>
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="taskTitle">任务标题</label>
+                    <input type="text" id="taskTitle" class="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="taskDate">截止日期</label>
+                    <input type="date" id="taskDate" class="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">任务归属</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="taskOwner" value="mine" class="mr-2" checked>
+                            <span>我的任务</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="taskOwner" value="child" class="mr-2">
+                            <span>孩子任务</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2" for="taskDesc">任务描述（可选）</label>
+                    <textarea id="taskDesc" class="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancelTaskBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-6 rounded-lg transition">取消</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg transition">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 任务管理器类
+        class TaskManager {
+            constructor() {
+                this.tasks = JSON.parse(localStorage.getItem('familyTasks')) || [];
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.renderTasks();
+                this.updateStats();
+                this.setMinDate();
+            }
+
+            // 设置最小日期为今天
+            setMinDate() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('taskDate').min = today;
+            }
+
+            // 绑定事件
+            bindEvents() {
+                // 添加任务按钮
+                document.getElementById('addTaskBtn').addEventListener('click', () => {
+                    this.openTaskModal();
+                });
+
+                // 取消按钮
+                document.getElementById('cancelTaskBtn').addEventListener('click', () => {
+                    this.closeTaskModal();
+                });
+
+                // 表单提交
+                document.getElementById('taskForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveTask();
+                });
+
+                // 筛选器
+                document.getElementById('filterSelect').addEventListener('change', () => {
+                    this.renderTasks();
+                });
+            }
+
+            // 打开任务模态框
+            openTaskModal(task = null) {
+                const modal = document.getElementById('taskModal');
+                const title = document.querySelector('#taskModal h2');
+                const form = document.getElementById('taskForm');
+
+                if (task) {
+                    // 编辑模式
+                    title.textContent = '编辑待办事项';
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDate').value = task.date;
+                    document.getElementById('taskDesc').value = task.description || '';
+                    document.querySelector(`input[name="taskOwner"][value="${task.owner}"]`).checked = true;
+                } else {
+                    // 添加模式
+                    title.textContent = '添加待办事项';
+                    form.reset();
+                    document.querySelector('input[name="taskOwner"][value="mine"]').checked = true;
+                    this.setMinDate();
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            // 关闭任务模态框
+            closeTaskModal() {
+                document.getElementById('taskModal').classList.add('hidden');
+            }
+
+            // 保存任务
+            saveTask() {
+                const id = document.getElementById('taskId').value || Date.now().toString();
+                const title = document.getElementById('taskTitle').value;
+                const date = document.getElementById('taskDate').value;
+                const owner = document.querySelector('input[name="taskOwner"]:checked').value;
+                const description = document.getElementById('taskDesc').value;
+
+                if (!title || !date) return;
+
+                const task = {
+                    id,
+                    title,
+                    date,
+                    owner,
+                    description,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                if (document.getElementById('taskId').value) {
+                    // 编辑任务
+                    const index = this.tasks.findIndex(t => t.id === id);
+                    if (index !== -1) {
+                        this.tasks[index] = task;
+                    }
+                } else {
+                    // 添加新任务
+                    this.tasks.push(task);
+                }
+
+                this.saveToStorage();
+                this.renderTasks();
+                this.updateStats();
+                this.closeTaskModal();
+            }
+
+            // 删除任务
+            deleteTask(id) {
+                if (confirm('确定要删除这个任务吗？')) {
+                    this.tasks = this.tasks.filter(task => task.id !== id);
+                    this.saveToStorage();
+                    this.renderTasks();
+                    this.updateStats();
+                }
+            }
+
+            // 切换任务完成状态
+            toggleTaskStatus(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.saveToStorage();
+                    this.renderTasks();
+                    this.updateStats();
+                }
+            }
+
+            // 保存到本地存储
+            saveToStorage() {
+                localStorage.setItem('familyTasks', JSON.stringify(this.tasks));
+            }
+
+            // 获取格式化的日期
+            getFormattedDate(dateString) {
+                const date = new Date(dateString);
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                if (date.toDateString() === today.toDateString()) {
+                    return '今天';
+                } else if (date.toDateString() === tomorrow.toDateString()) {
+                    return '明天';
+                } else {
+                    return `${date.getMonth() + 1}月${date.getDate()}日`;
+                }
+            }
+
+            // 获取日期状态类
+            getDateStatusClass(dateString) {
+                const date = new Date(dateString);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                date.setHours(0, 0, 0, 0);
+
+                const diffTime = date - today;
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                if (diffDays < 0) return 'text-red-500';
+                if (diffDays === 0) return 'text-orange-500';
+                if (diffDays <= 2) return 'text-yellow-500';
+                return 'text-green-500';
+            }
+
+            // 筛选任务
+            filterTasks() {
+                const filter = document.getElementById('filterSelect').value;
+                const now = new Date();
+
+                switch (filter) {
+                    case 'pending':
+                        return this.tasks.filter(task => !task.completed);
+                    case 'completed':
+                        return this.tasks.filter(task => task.completed);
+                    case 'mine':
+                        return this.tasks.filter(task => task.owner === 'mine');
+                    case 'child':
+                        return this.tasks.filter(task => task.owner === 'child');
+                    default:
+                        return [...this.tasks];
+                }
+            }
+
+            // 渲染任务列表
+            renderTasks() {
+                const taskList = document.getElementById('taskList');
+                const emptyState = document.getElementById('emptyState');
+                const filteredTasks = this.filterTasks();
+
+                if (filteredTasks.length === 0) {
+                    taskList.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+
+                // 按日期和完成状态排序
+                filteredTasks.sort((a, b) => {
+                    if (a.completed !== b.completed) {
+                        return a.completed ? 1 : -1;
+                    }
+                    return new Date(a.date) - new Date(b.date);
+                });
+
+                taskList.innerHTML = filteredTasks.map(task => {
+                    const formattedDate = this.getFormattedDate(task.date);
+                    const dateStatusClass = this.getDateStatusClass(task.date);
+                    const ownerClass = task.owner === 'mine' ? 'mine' : 'child';
+                    const ownerText = task.owner === 'mine' ? '我的任务' : '孩子任务';
+                    const ownerIcon = task.owner === 'mine' ? 'user' : 'child-reaching';
+
+                    return `
+                        <div class="task-card border rounded-xl p-4 ${ownerClass} ${task.completed ? 'task-completed' : ''}">
+                            <div class="flex items-start">
+                                <button class="toggle-task mr-3 mt-1" data-id="${task.id}">
+                                    <i class="fas fa-${task.completed ? 'check-circle text-green-500' : 'circle text-gray-300'} text-xl"></i>
+                                </button>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="task-title text-lg font-semibold ${task.completed ? 'text-gray-500' : 'text-gray-800'}">
+                                            ${task.title}
+                                        </h3>
+                                        <div class="flex space-x-2">
+                                            <button class="edit-task text-gray-500 hover:text-indigo-600" data-id="${task.id}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="delete-task text-gray-500 hover:text-red-600" data-id="${task.id}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-600 mt-1">${task.description || ''}</p>
+                                    <div class="flex items-center mt-3 text-sm">
+                                        <span class="mr-4 ${dateStatusClass}">
+                                            <i class="fas fa-calendar-alt mr-1"></i>
+                                            ${formattedDate}
+                                        </span>
+                                        <span class="${task.owner === 'mine' ? 'text-indigo-600' : 'text-green-600'}">
+                                            <i class="fas fa-${ownerIcon} mr-1"></i>
+                                            ${ownerText}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 绑定任务操作事件
+                document.querySelectorAll('.toggle-task').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        this.toggleTaskStatus(id);
+                    });
+                });
+
+                document.querySelectorAll('.edit-task').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const task = this.tasks.find(t => t.id === id);
+                        this.openTaskModal(task);
+                    });
+                });
+
+                document.querySelectorAll('.delete-task').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        this.deleteTask(id);
+                    });
+                });
+            }
+
+            // 更新统计信息
+            updateStats() {
+                const totalTasks = this.tasks.length;
+                const completedTasks = this.tasks.filter(task => task.completed).length;
+                const pendingTasks = totalTasks - completedTasks;
+
+                document.getElementById('totalTasks').textContent = totalTasks;
+                document.getElementById('completedTasks').textContent = completedTasks;
+                document.getElementById('pendingTasks').textContent = pendingTasks;
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            window.taskManager = new TaskManager();
+        });
+    </script>
+</body>
+</html>
