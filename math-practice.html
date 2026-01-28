@@ -367,640 +367,263 @@
         </div>
     </footer>
 
-    <script>
-        // 全局变量
-        let currentSettings = {
-            type: 'addition',
-            level: 'easy'
-        };
-        let currentQuestion = {
-            num1: 0,
-            num2: 0,
-            operator: '+',
-            answer: 0
-        };
-        let userAnswer = '';
-        let questions = [];
-        let currentQuestionIndex = 0;
-        let correctCount = 0;
-        let soundEnabled = true;
-        let isPracticeActive = false;
-        
-        // DOM 元素
-        const welcomeSection = document.getElementById('welcomeSection');
-        const settingsSection = document.getElementById('settingsSection');
-        const practiceSection = document.getElementById('practiceSection');
-        const resultSection = document.getElementById('resultSection');
-        const achievementsSection = document.getElementById('achievementsSection');
-        
-        const startPracticeBtn = document.getElementById('startPractice');
-        const viewAchievementsBtn = document.getElementById('viewAchievements');
-        const confirmSettingsBtn = document.getElementById('confirmSettings');
-        const practiceTypeBtns = document.querySelectorAll('.practice-type-btn');
-        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
-        const numberBtns = document.querySelectorAll('.number-btn');
-        const clearBtn = document.getElementById('clearBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const listenQuestionBtn = document.getElementById('listenQuestion');
-        const showHintBtn = document.getElementById('showHint');
-        const skipQuestionBtn = document.getElementById('skipQuestion');
-        const retryBtn = document.getElementById('retryBtn');
-        const changeSettingsBtn = document.getElementById('changeSettingsBtn');
-        const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
-        const backFromAchievementsBtn = document.getElementById('backFromAchievementsBtn');
-        const backToWelcomeFromPracticeBtn = document.getElementById('backToWelcomeFromPractice');
-        const backToWelcomeFromSettingsBtn = document.getElementById('backToWelcomeFromSettings');
-        
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const num1El = document.getElementById('num1');
-        const operatorEl = document.getElementById('operator');
-        const num2El = document.getElementById('num2');
-        const answerBoxEl = document.getElementById('answerBox');
-        const answerEl = document.getElementById('answer');
-        const calculationVisualizationEl = document.getElementById('calculationVisualization');
-        const visualizationStepsEl = document.getElementById('visualizationSteps');
-        
-        const resultEmojiEl = document.getElementById('resultEmoji');
-        const resultTitleEl = document.getElementById('resultTitle');
-        const resultMessageEl = document.getElementById('resultMessage');
-        const correctCountEl = document.getElementById('correctCount');
-        const accuracyEl = document.getElementById('accuracy');
-        
-        const soundToggleBtn = document.getElementById('soundToggle');
-        const helpBtn = document.getElementById('helpBtn');
-        const helpModal = document.getElementById('helpModal');
-        const closeHelpModalBtn = document.getElementById('closeHelpModal');
-        const gotItBtn = document.getElementById('gotItBtn');
-        
-        // 初始化
-        function init() {
-            // 事件监听
-            setupEventListeners();
+<script>
+    // 全局变量
+    let currentSettings = { type: 'addition', level: 'easy' };
+    let currentQuestion = { num1: 0, num2: 0, operator: '+', answer: 0 };
+    let userAnswer = '';
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let correctCount = 0;
+    let soundEnabled = true;
+
+    // DOM 元素获取 (确保 ID 存在)
+    const getEl = (id) => document.getElementById(id);
+    const elements = {
+        welcome: getEl('welcomeSection'),
+        settings: getEl('settingsSection'),
+        practice: getEl('practiceSection'),
+        result: getEl('resultSection'),
+        achievements: getEl('achievementsSection'),
+        answer: getEl('answer'),
+        answerBox: getEl('answerBox'),
+        progressBar: getEl('progressBar'),
+        progressText: getEl('progressText'),
+        num1: getEl('num1'),
+        num2: getEl('num2'),
+        operator: getEl('operator'),
+        helpModal: getEl('helpModal'),
+        viz: getEl('calculationVisualization'),
+        vizSteps: getEl('visualizationSteps')
+    };
+
+    // 初始化
+    function init() {
+        setupEventListeners();
+        // 预热语音系统（安卓关键）
+        window.speechSynthesis.getVoices();
+    }
+
+    // 语音朗读核心函数 - 修正安卓不发声问题
+    function speakText(text) {
+        if (!soundEnabled) return;
+
+        // 检查浏览器是否支持语音合成
+        if (!('speechSynthesis' in window)) {
+            console.warn('浏览器不支持语音合成功能');
+            showTextNotification(text);
+            return;
         }
-        
-        // 设置事件监听
-        function setupEventListeners() {
-            // 欢迎区按钮
-            startPracticeBtn.addEventListener('click', () => {
-                welcomeSection.classList.add('hidden');
-                settingsSection.classList.remove('hidden');
-            });
-            
-            viewAchievementsBtn.addEventListener('click', () => {
-                welcomeSection.classList.add('hidden');
-                achievementsSection.classList.remove('hidden');
-            });
-            
-            // 练习类型按钮
-            practiceTypeBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    practiceTypeBtns.forEach(b => b.classList.remove('ring-2', 'ring-primary'));
-                    btn.classList.add('ring-2', 'ring-primary');
-                    currentSettings.type = btn.dataset.type;
-                });
-            });
-            
-            // 难度级别按钮
-            difficultyBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    difficultyBtns.forEach(b => b.classList.remove('ring-2', 'ring-primary'));
-                    btn.classList.add('ring-2', 'ring-primary');
-                    currentSettings.level = btn.dataset.level;
-                });
-            });
-            
-            // 确认设置按钮
-            confirmSettingsBtn.addEventListener('click', startPractice);
-            
-            // 数字按钮
-            numberBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (userAnswer.length < 3) {
-                        userAnswer += btn.textContent;
-                        updateAnswerDisplay();
-                    }
-                });
-            });
-            
-            // 清除按钮
-            clearBtn.addEventListener('click', () => {
-                userAnswer = '';
-                updateAnswerDisplay();
-            });
-            
-            // 提交按钮
-            submitBtn.addEventListener('click', checkAnswer);
-            
-            // 听题目按钮
-            listenQuestionBtn.addEventListener('click', speakQuestion);
-            
-            // 提示按钮
-            showHintBtn.addEventListener('click', showHint);
-            
-            // 跳过按钮
-            skipQuestionBtn.addEventListener('click', nextQuestion);
-            
-            // 结果区按钮
-            retryBtn.addEventListener('click', startPractice);
-            
-            changeSettingsBtn.addEventListener('click', () => {
-                resultSection.classList.add('hidden');
-                settingsSection.classList.remove('hidden');
-            });
-            
-            backToWelcomeBtn.addEventListener('click', () => {
-                resultSection.classList.add('hidden');
-                welcomeSection.classList.remove('hidden');
-            });
-            
-            // 成就区返回按钮
-            backFromAchievementsBtn.addEventListener('click', () => {
-                achievementsSection.classList.add('hidden');
-                welcomeSection.classList.remove('hidden');
-            });
-            
-            // 练习区返回主页按钮
-            document.getElementById('backToWelcomeFromPractice').addEventListener('click', function() {
-                document.getElementById('practiceSection').classList.add('hidden');
-                document.getElementById('welcomeSection').classList.remove('hidden');
-            });
-            
-            // 设置区返回主页按钮
-            document.getElementById('backToWelcomeFromSettings').addEventListener('click', function() {
-                document.getElementById('settingsSection').classList.add('hidden');
-                document.getElementById('welcomeSection').classList.remove('hidden');
-            });
-            
-            // 声音切换按钮
-            soundToggleBtn.addEventListener('click', () => {
-                soundEnabled = !soundEnabled;
-                soundToggleBtn.innerHTML = soundEnabled ? '<span class="text-xl">🔊</span>' : '<span class="text-xl">🔇</span>';
-            });
-            
-            // 帮助按钮
-            helpBtn.addEventListener('click', () => {
-                helpModal.classList.remove('hidden');
-            });
-            
-            // 关闭帮助模态框
-            closeHelpModalBtn.addEventListener('click', () => {
-                helpModal.classList.add('hidden');
-            });
-            
-            gotItBtn.addEventListener('click', () => {
-                helpModal.classList.add('hidden');
-            });
-        }
-        
-        // 开始练习
-        function startPractice() {
-            // 隐藏其他部分
-            settingsSection.classList.add('hidden');
-            resultSection.classList.add('hidden');
-            practiceSection.classList.remove('hidden');
-            
-            // 初始化练习
-            currentQuestionIndex = 0;
-            correctCount = 0;
-            userAnswer = '';
-            
-            // 生成题目
-            generateQuestions();
-            
-            // 显示第一题
-            showQuestion();
-            
-            // 更新进度
-            updateProgress();
-            
-            // 朗读题目
-            speakQuestion();
-        }
-        
-        // 生成题目
-        function generateQuestions() {
-            questions = [];
-            let numRange = 5;
-            
-            // 根据难度设置数字范围
-            switch (currentSettings.level) {
-                case 'easy':
-                    numRange = 5;
-                    break;
-                case 'medium':
-                    numRange = 10;
-                    break;
-                case 'hard':
-                    numRange = 20;
-                    break;
+
+        // 1. 先取消当前队列，防止安卓语音堆积挂起
+        window.speechSynthesis.cancel();
+
+        // 检查语音合成是否可用
+        try {
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                console.warn('语音列表为空，无法播放语音');
+                showTextNotification(text);
+                return;
             }
-            
-            // 生成10道题目
-            for (let i = 0; i < 10; i++) {
-                let num1, num2, answer, operator;
-                
-                switch (currentSettings.type) {
-                    case 'addition':
-                        num1 = Math.floor(Math.random() * numRange) + 1;
-                        num2 = Math.floor(Math.random() * numRange) + 1;
-                        answer = num1 + num2;
-                        operator = '+';
-                        break;
-                    case 'subtraction':
-                        num1 = Math.floor(Math.random() * numRange) + 1;
-                        num2 = Math.floor(Math.random() * num1) + 1;
-                        answer = num1 - num2;
-                        operator = '-';
-                        break;
+        } catch (error) {
+            console.warn('获取语音列表失败:', error);
+            showTextNotification(text);
+            return;
+        }
+
+        try {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            // 2. 尝试获取中文音轨
+            const voices = window.speechSynthesis.getVoices();
+            const chineseVoice = voices.find(v => v.lang.includes('zh'));
+            if (chineseVoice) utterance.voice = chineseVoice;
+
+            // 添加错误处理
+            utterance.onerror = function(event) {
+                console.error('语音播放错误:', event.error);
+                showTextNotification(text);
+            };
+
+            utterance.onend = function() {
+                console.log('语音播放完成');
+            };
+
+            // 3. 执行朗读
+            window.speechSynthesis.speak(utterance);
+        } catch (error) {
+            console.error('语音合成错误:', error);
+            showTextNotification(text);
+        }
+    }
+
+    // 显示文字通知（当语音不可用时的备用方案）
+    function showTextNotification(text) {
+        // 创建一个临时的通知元素
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-primary text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center max-w-md';
+        notification.innerHTML = `
+            <div class="font-bold mb-2">🔊 语音提示</div>
+            <div class="text-sm">${text}</div>
+            <button onclick="this.parentElement.remove()" class="mt-3 bg-white text-primary px-4 py-2 rounded-lg font-bold">关闭</button>
+        `;
+
+        document.body.appendChild(notification);
+
+        // 3秒后自动关闭
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+
+    function setupEventListeners() {
+        // 开始练习按钮 - 修正点击后不朗读
+        getEl('startPractice').addEventListener('click', () => {
+            // 在安卓上，必须在用户第一次点击时“激活”语音上下文
+            speakText(''); 
+            elements.welcome.classList.add('hidden');
+            elements.settings.classList.remove('hidden');
+        });
+
+        // 确认设置并开始
+        getEl('confirmSettings').addEventListener('click', startPractice);
+
+        // 数字按钮
+        document.querySelectorAll('.number-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (userAnswer.length < 3) {
+                    userAnswer += btn.textContent.trim();
+                    updateAnswerDisplay();
                 }
-                
-                questions.push({ num1, num2, operator, answer });
-            }
-        }
-        
-        // 显示题目
-        function showQuestion() {
-            currentQuestion = questions[currentQuestionIndex];
-            num1El.textContent = currentQuestion.num1;
-            operatorEl.textContent = currentQuestion.operator;
-            num2El.textContent = currentQuestion.num2;
-            userAnswer = '';
-            updateAnswerDisplay();
-            calculationVisualizationEl.classList.add('hidden');
-        }
-        
-        // 更新答案显示
-        function updateAnswerDisplay() {
-            if (userAnswer === '') {
-                answerEl.textContent = '?';
-                answerBoxEl.classList.remove('bg-success', 'bg-danger');
-            } else {
-                answerEl.textContent = userAnswer;
-            }
-        }
-        
-        // 更新进度
-        function updateProgress() {
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `${currentQuestionIndex}/${questions.length}`;
-        }
-        
-        // 检查答案
-        function checkAnswer() {
-            if (userAnswer === '') return;
-            
-            const isCorrect = parseInt(userAnswer) === currentQuestion.answer;
-            
-            if (isCorrect) {
-                correctCount++;
-                answerBoxEl.classList.remove('bg-danger');
-                answerBoxEl.classList.add('bg-success');
-                speakText('正确！');
-                
-                // 延迟后进入下一题
-                setTimeout(() => {
-                    nextQuestion();
-                }, 1000);
-            } else {
-                answerBoxEl.classList.remove('bg-success');
-                answerBoxEl.classList.add('bg-danger');
-                speakText('错误，请再试一次。');
-                // 错误时不自动跳题，让用户查看提示
-            }
-        }
-        
-        // 下一题
-        function nextQuestion() {
-            currentQuestionIndex++;
-            
-            if (currentQuestionIndex < questions.length) {
-                updateProgress();
-                showQuestion();
-                speakQuestion();
-            } else {
-                showResult();
-            }
-        }
-        
-        // 显示结果
-        function showResult() {
-            practiceSection.classList.add('hidden');
-            resultSection.classList.remove('hidden');
-            
-            const accuracy = Math.round((correctCount / questions.length) * 100);
-            
-            correctCountEl.textContent = correctCount;
-            accuracyEl.textContent = `${accuracy}%`;
-            
-            // 根据正确率显示不同的结果
-            if (accuracy === 100) {
-                resultEmojiEl.textContent = '🎉';
-                resultTitleEl.textContent = '太棒了！';
-                resultMessageEl.textContent = '你是算术小天才！';
-                speakText('恭喜你，所有题目都答对了！你是算术小天才！');
-            } else if (accuracy >= 80) {
-                resultEmojiEl.textContent = '👏';
-                resultTitleEl.textContent = '做得很好！';
-                resultMessageEl.textContent = '继续努力，你会更棒的！';
-                speakText(`恭喜你，正确率达到了${accuracy}%，做得很好！`);
-            } else if (accuracy >= 60) {
-                resultEmojiEl.textContent = '👍';
-                resultTitleEl.textContent = '不错哦！';
-                resultMessageEl.textContent = '多练习会更好的！';
-                speakText(`你的正确率是${accuracy}%，不错哦，多练习会更好的！`);
-            } else {
-                resultEmojiEl.textContent = '💪';
-                resultTitleEl.textContent = '继续加油！';
-                resultMessageEl.textContent = '相信你下次会做得更好！';
-                speakText(`你的正确率是${accuracy}%，继续加油，相信你下次会做得更好！`);
-            }
-        }
-        
-        // 朗读题目
-        function speakQuestion() {
-            if (!soundEnabled) return;
-            
-            const text = `${currentQuestion.num1} ${getOperatorText(currentQuestion.operator)} ${currentQuestion.num2} 等于多少？`;
-            speakText(text);
-        }
-        
-        // 获取运算符文本
-        function getOperatorText(operator) {
-            switch (operator) {
-                case '+': return '加';
-                case '-': return '减';
-                case '×': return '乘';
-                case '÷': return '除以';
-                default: return '';
-            }
-        }
-        
-        // 显示提示
-        function showHint() {
-            calculationVisualizationEl.classList.remove('hidden');
-            visualizationStepsEl.innerHTML = '';
-            
-            const { num1, num2, operator, answer } = currentQuestion;
-            
-            switch (operator) {
-                case '+':
-                    // 分解加法
-                    if (num1 <= 10 && num2 <= 10) {
-                        // 简单加法
-                        visualizationStepsEl.innerHTML = `
-                            <div class="flex items-center justify-center gap-4">
-                                ${Array(num1).fill('🔴').join('')}
-                                <span class="text-xl">+</span>
-                                ${Array(num2).fill('🟡').join('')}
-                                <span class="text-xl">=</span>
-                                ${Array(answer).fill('🔵').join('')}
-                            </div>
-                            <div class="text-center mb-4">
-                                <p>${num1} + ${num2} = ${answer}</p>
-                            </div>
-                            ${(num1 + num2 >= 10) ? `
-                                <div class="bg-yellow-100 p-4 rounded-lg mb-4">
-                                    <h4 class="font-bold mb-2">凑十法</h4>
-                                    <div class="flex flex-col gap-3">
-                                        <div>
-                                            <p>步骤1：把${num2}分成${10 - num1}和${num2 - (10 - num1)}</p>
-                                            <div class="flex justify-center gap-2 mt-2">
-                                                ${Array(num2).fill('🟡').join('')}
-                                                <span class="text-lg">→</span>
-                                                ${Array(10 - num1).fill('🟡').join('')}
-                                                <span class="text-lg">+</span>
-                                                ${Array(num2 - (10 - num1)).fill('🟡').join('')}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p>步骤2：${num1} + ${10 - num1} = 10</p>
-                                            <div class="flex justify-center gap-2 mt-2">
-                                                ${Array(num1).fill('🔴').join('')}
-                                                <span class="text-lg">+</span>
-                                                ${Array(10 - num1).fill('🟡').join('')}
-                                                <span class="text-lg">=</span>
-                                                ${Array(10).fill('🔵').join('')}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p>步骤3：10 + ${num2 - (10 - num1)} = ${answer}</p>
-                                            <div class="flex justify-center gap-2 mt-2">
-                                                ${Array(10).fill('🔵').join('')}
-                                                <span class="text-lg">+</span>
-                                                ${Array(num2 - (10 - num1)).fill('🟡').join('')}
-                                                <span class="text-lg">=</span>
-                                                ${Array(answer).fill('🟢').join('')}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        `;
-                    } else {
-                        // 进位加法
-                        const ones1 = num1 % 10;
-                        const tens1 = Math.floor(num1 / 10);
-                        const ones2 = num2 % 10;
-                        const tens2 = Math.floor(num2 / 10);
-                        const onesSum = ones1 + ones2;
-                        const tensSum = tens1 + tens2 + (onesSum >= 10 ? 1 : 0);
-                        const onesResult = onesSum % 10;
-                        
-                        visualizationStepsEl.innerHTML = `
-                            <div class="mb-4">
-                                <p>步骤1：分解数字</p>
-                                <div class="flex justify-center gap-8 mt-2">
-                                    <div>
-                                        <p>${num1} = ${tens1}0 + ${ones1}</p>
-                                    </div>
-                                    <div>
-                                        <p>${num2} = ${tens2}0 + ${ones2}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤2：个位相加</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${ones1} + ${ones2} = ${onesSum}</p>
-                                    ${onesSum >= 10 ? '<p class="text-primary">需要进位！</p>' : ''}
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤3：十位相加</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${tens1}0 + ${tens2}0 ${onesSum >= 10 ? '+ 10' : ''} = ${tensSum}0</p>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤4：合并结果</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${tensSum}0 + ${onesResult} = ${answer}</p>
-                                </div>
-                            </div>
-                            ${onesSum >= 10 ? `
-                                <div class="bg-yellow-100 p-4 rounded-lg mt-4">
-                                    <h4 class="font-bold mb-2">凑十法</h4>
-                                    <p>步骤1：把个位数字${ones2}分成${10 - ones1}和${ones2 - (10 - ones1)}</p>
-                                    <p>步骤2：${ones1} + ${10 - ones1} = 10</p>
-                                    <p>步骤3：10 + ${ones2 - (10 - ones1)} = ${onesSum}</p>
-                                    <p>步骤4：${tens1}0 + ${tens2}0 + 10 = ${answer}</p>
-                                </div>
-                            ` : ''}
-                        `;
-                    }
-                    break;
-                    
-                case '-':
-                    // 分解减法
-                    if (num1 % 10 >= num2 % 10) {
-                        // 不需要借位的减法
-                        visualizationStepsEl.innerHTML = `
-                            <div class="flex items-center justify-center gap-4">
-                                ${Array(num1).fill('🔴').join('')}
-                                <span class="text-xl">-</span>
-                                ${Array(num2).fill('🟡').join('')}
-                                <span class="text-xl">=</span>
-                                ${Array(answer).fill('🔵').join('')}
-                            </div>
-                            <div class="text-center">
-                                <p>${num1} - ${num2} = ${answer}</p>
-                            </div>
-                        `;
-                    } else {
-                        // 需要借位的减法
-                        const ones1 = num1 % 10;
-                        const tens1 = Math.floor(num1 / 10);
-                        const ones2 = num2 % 10;
-                        const tens2 = Math.floor(num2 / 10);
-                        const onesDiff = ones1 + 10 - ones2;
-                        const tensDiff = tens1 - 1 - tens2;
-                        
-                        visualizationStepsEl.innerHTML = `
-                            <div class="mb-4">
-                                <p>步骤1：分解数字</p>
-                                <div class="flex justify-center gap-8 mt-2">
-                                    <div>
-                                        <p>${num1} = ${tens1}0 + ${ones1}</p>
-                                    </div>
-                                    <div>
-                                        <p>${num2} = ${tens2}0 + ${ones2}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤2：个位相减（需要借位）</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${ones1} < ${ones2}，所以从十位借10</p>
-                                    <p>${ones1} + 10 = ${ones1 + 10}</p>
-                                    <p>${ones1 + 10} - ${ones2} = ${onesDiff}</p>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤3：十位相减（注意已经借了1）</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${tens1}0 - 10 = ${tens1 - 1}0</p>
-                                    <p>${tens1 - 1}0 - ${tens2}0 = ${tensDiff}0</p>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <p>步骤4：合并结果</p>
-                                <div class="flex justify-center gap-4 mt-2">
-                                    <p>${tensDiff}0 + ${onesDiff} = ${answer}</p>
-                                </div>
-                            </div>
-                            <div class="bg-yellow-100 p-4 rounded-lg mt-4">
-                                <h4 class="font-bold mb-2">破十法</h4>
-                                <div class="flex flex-col gap-3">
-                                    <div>
-                                        <p>步骤1：把${num1}分成10和${num1 - 10}</p>
-                                        <div class="flex justify-center gap-2 mt-2">
-                                            ${Array(num1).fill('🔴').join('')}
-                                            <span class="text-lg">→</span>
-                                            ${Array(10).fill('🔴').join('')}
-                                            <span class="text-lg">+</span>
-                                            ${Array(num1 - 10).fill('🔴').join('')}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p>步骤2：10 - ${ones2} = ${10 - ones2}</p>
-                                        <div class="flex justify-center gap-2 mt-2">
-                                            ${Array(10).fill('🔴').join('')}
-                                            <span class="text-lg">-</span>
-                                            ${Array(ones2).fill('🟡').join('')}
-                                            <span class="text-lg">=</span>
-                                            ${Array(10 - ones2).fill('🔵').join('')}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p>步骤3：${10 - ones2} + ${num1 - 10} = ${answer}</p>
-                                        <div class="flex justify-center gap-2 mt-2">
-                                            ${Array(10 - ones2).fill('🔵').join('')}
-                                            <span class="text-lg">+</span>
-                                            ${Array(num1 - 10).fill('🔴').join('')}
-                                            <span class="text-lg">=</span>
-                                            ${Array(answer).fill('🟢').join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    break;
-            }
-            
-            // 朗读提示
-            speakText('提示：' + getHintText());
-        }
-        
-        // 获取提示文本
-        function getHintText() {
-            const { num1, num2, operator, answer } = currentQuestion;
-            
-            switch (operator) {
-                case '+':
-                    return `${num1}加${num2}等于${answer}`;
-                case '-':
-                    return `${num1}减${num2}等于${answer}`;
-                default:
-                    return '';
-            }
-        }
-        
-        // 朗读文本
-        function speakText(text) {
-            if (!soundEnabled) return;
-            
-            const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = 'zh-CN';
-            speech.rate = 0.95; // 稍慢但更自然
-            speech.pitch = 1.0; // 正常音调
-            speech.volume = 1;
-            
-            // 尝试选择更自然的中文语音
-            const voices = speechSynthesis.getVoices();
-            const chineseVoice = voices.find(voice => 
-                voice.lang === 'zh-CN' || 
-                voice.lang === 'zh' ||
-                voice.name.includes('Chinese') ||
-                voice.name.includes('中文')
-            );
-            
-            if (chineseVoice) {
-                speech.voice = chineseVoice;
-            }
-            
-            speechSynthesis.speak(speech);
-        }
-        
-        // 预加载语音列表
-        window.speechSynthesis.onvoiceschanged = function() {
-            // 语音列表加载完成，无需额外操作
+            });
+        });
+
+        // 提交按钮
+        getEl('submitBtn').addEventListener('click', checkAnswer);
+
+        // 其他功能按钮
+        getEl('clearBtn').addEventListener('click', () => { userAnswer = ''; updateAnswerDisplay(); });
+        getEl('listenQuestion').addEventListener('click', speakQuestion);
+        getEl('showHint').addEventListener('click', showHint);
+        getEl('skipQuestion').addEventListener('click', nextQuestion);
+        getEl('retryBtn').addEventListener('click', startPractice);
+
+        // 导航返回按钮 (统一处理)
+        getEl('backToWelcomeFromSettings').onclick = () => switchSection('settings', 'welcome');
+        getEl('backToWelcomeFromPractice').onclick = () => switchSection('practice', 'welcome');
+        getEl('backToWelcomeBtn').onclick = () => switchSection('result', 'welcome');
+        getEl('backFromAchievementsBtn').onclick = () => switchSection('achievements', 'welcome');
+        getEl('viewAchievements').onclick = () => switchSection('welcome', 'achievements');
+
+        // 辅助功能
+        getEl('soundToggle').onclick = function() {
+            soundEnabled = !soundEnabled;
+            this.innerHTML = soundEnabled ? '🔊' : '🔇';
         };
-        
-        // 初始化应用
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
+        getEl('helpBtn').onclick = () => elements.helpModal.classList.remove('hidden');
+        getEl('closeHelpModal').onclick = () => elements.helpModal.classList.add('hidden');
+        getEl('gotItBtn').onclick = () => elements.helpModal.classList.add('hidden');
+    }
+
+    function switchSection(from, to) {
+        elements[from].classList.add('hidden');
+        elements[to].classList.remove('hidden');
+    }
+
+    function startPractice() {
+        switchSection('settings', 'practice');
+        currentQuestionIndex = 0;
+        correctCount = 0;
+        generateQuestions();
+        showQuestion();
+        updateProgress();
+        // 延迟 300ms 朗读，确保安卓浏览器 UI 渲染完毕后再请求语音
+        setTimeout(speakQuestion, 300);
+    }
+
+    function generateQuestions() {
+        questions = [];
+        let range = currentSettings.level === 'easy' ? 10 : (currentSettings.level === 'medium' ? 20 : 50);
+        for (let i = 0; i < 10; i++) {
+            let n1 = Math.floor(Math.random() * range) + 1;
+            let n2 = Math.floor(Math.random() * range) + 1;
+            if (currentSettings.type === 'subtraction' && n1 < n2) [n1, n2] = [n2, n1];
+            let op = currentSettings.type === 'addition' ? '+' : '-';
+            questions.push({ num1: n1, num2: n2, operator: op, answer: op === '+' ? n1 + n2 : n1 - n2 });
+        }
+    }
+
+    function showQuestion() {
+        currentQuestion = questions[currentQuestionIndex];
+        elements.num1.textContent = currentQuestion.num1;
+        elements.operator.textContent = currentQuestion.operator;
+        elements.num2.textContent = currentQuestion.num2;
+        userAnswer = '';
+        updateAnswerDisplay();
+        elements.viz.classList.add('hidden');
+    }
+
+    function updateAnswerDisplay() {
+        elements.answer.textContent = userAnswer || '?';
+        elements.answerBox.className = "flex items-center justify-center border-b-4 border-gray-300 min-w-[80px] min-h-[60px]";
+    }
+
+    function updateProgress() {
+        const pct = (currentQuestionIndex / 10) * 100;
+        elements.progressBar.style.width = pct + '%';
+        elements.progressText.textContent = `${currentQuestionIndex}/10`;
+    }
+
+    function checkAnswer() {
+        if (!userAnswer) return;
+        if (parseInt(userAnswer) === currentQuestion.answer) {
+            correctCount++;
+            elements.answerBox.classList.add('bg-green-100');
+            speakText('答对了！');
+            setTimeout(nextQuestion, 800);
+        } else {
+            elements.answerBox.classList.add('bg-red-100');
+            speakText('再想想看');
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < 10) {
+            showQuestion();
+            updateProgress();
+            setTimeout(speakQuestion, 200);
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        switchSection('practice', 'result');
+        const acc = (correctCount / 10) * 100;
+        getEl('correctCount').textContent = correctCount;
+        getEl('accuracy').textContent = acc + '%';
+        getEl('resultTitle').textContent = acc >= 80 ? '太棒了！' : '继续加油！';
+        speakText(`练习结束，你的正确率是${acc}%`);
+    }
+
+    function speakQuestion() {
+        const opName = currentQuestion.operator === '+' ? '加' : '减';
+        speakText(`${currentQuestion.num1} ${opName} ${currentQuestion.num2} 等于多少？`);
+    }
+
+    function showHint() {
+        elements.viz.classList.remove('hidden');
+        elements.vizSteps.innerHTML = `<p class="text-lg">提示：可以尝试用手指点数或者凑十法哦！结果是 ${currentQuestion.answer}</p>`;
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
