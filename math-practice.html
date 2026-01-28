@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幼小衔接口算练习</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        accent: '#f97316',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        happy: '#8b5cf6',
+                        fun: '#ec4899',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        comic: ['Comic Sans MS', 'cursive', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 2s infinite',
+                        'wiggle': 'wiggle 1s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .btn-hover {
+                @apply hover:scale-105 transition-all duration-300 hover:shadow-lg;
+            }
+            .card-hover {
+                @apply hover:shadow-xl transition-all duration-300 hover:-translate-y-1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen font-comic text-dark">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold text-xl sm:text-2xl">🧮</span>
+                </div>
+                <h1 class="text-lg sm:text-2xl font-bold text-dark">趣味口算练习</h1>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="soundToggle" class="w-8 h-8 sm:w-10 sm:h-10 bg-light rounded-full flex items-center justify-center btn-hover">
+                    <span class="text-base sm:text-xl">🔊</span>
+                </button>
+                <button id="helpBtn" class="w-8 h-8 sm:w-10 sm:h-10 bg-light rounded-full flex items-center justify-center btn-hover">
+                    <span class="text-base sm:text-xl">❓</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 欢迎区 -->
+        <section id="welcomeSection" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 text-center">
+            <div class="mb-4 sm:mb-6">
+                <span class="text-4xl sm:text-6xl">🎉</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-primary">欢迎来到趣味口算练习！</h2>
+            <p class="text-base sm:text-lg text-secondary mb-6 sm:mb-8">
+                小朋友们，让我们一起快乐学习数学吧！
+            </p>
+            <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+                <button id="startPractice" class="bg-primary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-xl font-bold btn-hover">
+                    开始练习
+                </button>
+                <button id="viewAchievements" class="bg-accent text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-xl font-bold btn-hover">
+                    查看成就
+                </button>
+            </div>
+        </section>
+
+        <!-- 练习设置区 -->
+        <section id="settingsSection" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <button id="backToWelcomeFromSettings" class="bg-secondary text-white px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">🏠</span> 返回主页
+                </button>
+                <h2 class="text-xl sm:text-2xl font-bold text-center">练习设置</h2>
+                <div class="w-16 sm:w-24"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                <!-- 练习类型 -->
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold mb-4 text-secondary">练习类型</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="practice-type-btn bg-blue-100 text-primary py-3 rounded-xl font-bold text-center card-hover" data-type="addition">
+                            <span class="text-xl sm:text-2xl mb-2 block">➕</span>
+                            加法
+                        </button>
+                        <button class="practice-type-btn bg-green-100 text-success py-3 rounded-xl font-bold text-center card-hover" data-type="subtraction">
+                            <span class="text-xl sm:text-2xl mb-2 block">➖</span>
+                            减法
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 难度级别 -->
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold mb-4 text-secondary">难度级别</h3>
+                    <div class="space-y-4">
+                        <button class="difficulty-btn bg-light border-2 border-gray-200 py-3 rounded-xl font-bold text-center card-hover" data-level="easy">
+                            <span class="text-base sm:text-xl mb-1 block">🐣</span>
+                            初级 (5以内)
+                        </button>
+                        <button class="difficulty-btn bg-light border-2 border-gray-200 py-3 rounded-xl font-bold text-center card-hover" data-level="medium">
+                            <span class="text-base sm:text-xl mb-1 block">🐥</span>
+                            中级 (10以内)
+                        </button>
+                        <button class="difficulty-btn bg-light border-2 border-gray-200 py-3 rounded-xl font-bold text-center card-hover" data-level="hard">
+                            <span class="text-base sm:text-xl mb-1 block">🐔</span>
+                            高级 (20以内)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 sm:mt-8 text-center">
+                <button id="confirmSettings" class="bg-primary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-xl font-bold btn-hover">
+                    确认设置
+                </button>
+            </div>
+        </section>
+
+        <!-- 练习区 -->
+        <section id="practiceSection" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 hidden">
+            <!-- 顶部控制栏 -->
+            <div class="flex justify-between items-center mb-6 sm:mb-8">
+                <button id="backToWelcomeFromPractice" class="bg-secondary text-white px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">🏠</span> 返回主页
+                </button>
+                <div>
+                    <span class="font-bold text-sm sm:text-base">进度: </span>
+                    <span id="progressText" class="text-sm sm:text-base">0/10</span>
+                </div>
+            </div>
+            
+            <!-- 进度条 -->
+            <div class="mb-6 sm:mb-8">
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="progressBar" class="bg-primary h-4 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- 题目区 -->
+            <div class="mb-8 sm:mb-12 text-center">
+                <div id="visualization" class="flex items-center justify-center gap-4 sm:gap-8 mb-6 sm:mb-8">
+                    <div class="text-2xl sm:text-4xl font-bold" id="num1">8</div>
+                    <div class="text-2xl sm:text-4xl font-bold" id="operator">+</div>
+                    <div class="text-2xl sm:text-4xl font-bold" id="num2">5</div>
+                    <div class="text-2xl sm:text-4xl font-bold">=</div>
+                    <div class="w-20 sm:w-24 h-12 sm:h-16 border-2 border-primary rounded-xl flex items-center justify-center" id="answerBox">
+                        <span id="answer" class="text-xl sm:text-2xl">?</span>
+                    </div>
+                </div>
+                
+                <!-- 计算过程可视化 -->
+                <div id="calculationVisualization" class="bg-blue-50 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 hidden">
+                    <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4">计算过程</h3>
+                    <div id="visualizationSteps" class="space-y-3 sm:space-y-4">
+                        <!-- 计算步骤将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 输入区 -->
+            <div class="mb-6 sm:mb-8">
+                <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-center">请输入答案</h3>
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 max-w-md mx-auto">
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">1</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">2</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">3</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">4</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">5</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">6</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">7</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">8</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">9</button>
+                    <button class="bg-primary text-white py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center btn-hover" id="clearBtn">清除</button>
+                    <button class="number-btn bg-light border-2 border-gray-200 py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center card-hover">0</button>
+                    <button class="bg-success text-white py-3 sm:py-4 rounded-xl font-bold text-xl sm:text-2xl text-center btn-hover" id="submitBtn">提交</button>
+                </div>
+            </div>
+            
+            <!-- 控制按钮 -->
+            <div class="flex flex-wrap justify-center gap-3 sm:gap-4">
+                <button id="listenQuestion" class="bg-accent text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">🔊</span> 听题目
+                </button>
+                <button id="showHint" class="bg-warning text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">💡</span> 提示
+                </button>
+                <button id="skipQuestion" class="bg-secondary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">⏭️</span> 跳过
+                </button>
+            </div>
+        </section>
+
+        <!-- 结果区 -->
+        <section id="resultSection" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 hidden">
+            <div class="text-center mb-6 sm:mb-8">
+                <div id="resultEmoji" class="text-6xl sm:text-8xl mb-3 sm:mb-4">🎉</div>
+                <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4" id="resultTitle">练习完成！</h2>
+                <p class="text-base sm:text-xl mb-4 sm:mb-6" id="resultMessage">你太棒了！</p>
+                
+                <div class="flex justify-center gap-4 sm:gap-8 mb-6 sm:mb-8">
+                    <div class="text-center">
+                        <div class="text-3xl sm:text-4xl font-bold text-primary mb-2" id="correctCount">8</div>
+                        <div class="text-secondary text-sm sm:text-base">正确题数</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl sm:text-4xl font-bold text-accent mb-2" id="accuracy">80%</div>
+                        <div class="text-secondary text-sm sm:text-base">正确率</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto">
+                    <button id="retryBtn" class="bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                        再试一次
+                    </button>
+                    <button id="changeSettingsBtn" class="bg-accent text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                        更改设置
+                    </button>
+                    <button id="backToWelcomeBtn" class="bg-secondary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                        返回首页
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成就区 -->
+        <section id="achievementsSection" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <button id="backFromAchievements" class="bg-secondary text-white px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-bold btn-hover text-sm sm:text-base">
+                    <span class="mr-1 sm:mr-2">🏠</span> 返回主页
+                </button>
+                <h2 class="text-xl sm:text-2xl font-bold text-center">我的成就</h2>
+                <div class="w-16 sm:w-24"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">🏆</div>
+                    <div class="font-bold text-sm sm:text-base">初级算术王</div>
+                    <div class="text-xs sm:text-sm text-secondary">完成10次初级练习</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
+                    <div class="font-bold text-sm sm:text-base">中级算术王</div>
+                    <div class="text-xs sm:text-sm text-secondary">完成10次中级练习</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">💎</div>
+                    <div class="font-bold text-sm sm:text-base">高级算术王</div>
+                    <div class="text-xs sm:text-sm text-secondary">完成10次高级练习</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">🔥</div>
+                    <div class="font-bold text-sm sm:text-base">加法大师</div>
+                    <div class="text-xs sm:text-sm text-secondary">加法正确率100%</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">❄️</div>
+                    <div class="font-bold text-sm sm:text-base">减法大师</div>
+                    <div class="text-xs sm:text-sm text-secondary">减法正确率100%</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">⚡</div>
+                    <div class="font-bold text-sm sm:text-base">乘法大师</div>
+                    <div class="text-xs sm:text-sm text-secondary">乘法正确率100%</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">💧</div>
+                    <div class="font-bold text-sm sm:text-base">除法大师</div>
+                    <div class="text-xs sm:text-sm text-secondary">除法正确率100%</div>
+                </div>
+                <div class="achievement-card bg-light rounded-xl p-3 sm:p-4 text-center card-hover">
+                    <div class="text-2xl sm:text-3xl mb-1 sm:mb-2">🌟</div>
+                    <div class="font-bold text-sm sm:text-base">全能算术王</div>
+                    <div class="text-xs sm:text-sm text-secondary">完成所有类型练习</div>
+                </div>
+            </div>
+            
+            <div class="mt-6 sm:mt-8 text-center">
+                <button id="backFromAchievementsBtn" class="bg-primary text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-bold btn-hover text-sm sm:text-base">
+                    返回首页
+                </button>
+            </div>
+        </section>
+
+        <!-- 帮助模态框 -->
+        <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">如何使用</h3>
+                    <button id="closeHelpModal" class="text-2xl">✕</button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-bold mb-2">1. 开始练习</h4>
+                        <p>点击"开始练习"按钮，进入练习设置页面。</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2">2. 选择练习类型</h4>
+                        <p>选择你想要练习的算术类型：加法、减法、乘法或除法。</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2">3. 选择难度级别</h4>
+                        <p>根据你的能力选择难度级别：初级、中级或高级。</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2">4. 开始做题</h4>
+                        <p>在数字键盘上输入答案，然后点击"提交"按钮。</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2">5. 使用辅助功能</h4>
+                        <p>点击"听题目"按钮可以听到题目朗读，点击"提示"按钮可以查看计算过程。</p>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <button id="gotItBtn" class="bg-primary text-white px-6 py-3 rounded-xl font-bold">
+                        我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>趣味口算练习工具 &copy; 2026</p>
+            <p class="text-gray-400 text-sm mt-2">专为幼小衔接阶段的儿童设计</p>
+        </div>
+    </footer>
+
+    <script>
+        // 全局变量
+        let currentSettings = {
+            type: 'addition',
+            level: 'easy'
+        };
+        let currentQuestion = {
+            num1: 0,
+            num2: 0,
+            operator: '+',
+            answer: 0
+        };
+        let userAnswer = '';
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let correctCount = 0;
+        let soundEnabled = true;
+        let isPracticeActive = false;
+        
+        // DOM 元素
+        const welcomeSection = document.getElementById('welcomeSection');
+        const settingsSection = document.getElementById('settingsSection');
+        const practiceSection = document.getElementById('practiceSection');
+        const resultSection = document.getElementById('resultSection');
+        const achievementsSection = document.getElementById('achievementsSection');
+        
+        const startPracticeBtn = document.getElementById('startPractice');
+        const viewAchievementsBtn = document.getElementById('viewAchievements');
+        const confirmSettingsBtn = document.getElementById('confirmSettings');
+        const practiceTypeBtns = document.querySelectorAll('.practice-type-btn');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const numberBtns = document.querySelectorAll('.number-btn');
+        const clearBtn = document.getElementById('clearBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const listenQuestionBtn = document.getElementById('listenQuestion');
+        const showHintBtn = document.getElementById('showHint');
+        const skipQuestionBtn = document.getElementById('skipQuestion');
+        const retryBtn = document.getElementById('retryBtn');
+        const changeSettingsBtn = document.getElementById('changeSettingsBtn');
+        const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
+        const backFromAchievementsBtn = document.getElementById('backFromAchievementsBtn');
+        const backToWelcomeFromPracticeBtn = document.getElementById('backToWelcomeFromPractice');
+        const backToWelcomeFromSettingsBtn = document.getElementById('backToWelcomeFromSettings');
+        
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const num1El = document.getElementById('num1');
+        const operatorEl = document.getElementById('operator');
+        const num2El = document.getElementById('num2');
+        const answerBoxEl = document.getElementById('answerBox');
+        const answerEl = document.getElementById('answer');
+        const calculationVisualizationEl = document.getElementById('calculationVisualization');
+        const visualizationStepsEl = document.getElementById('visualizationSteps');
+        
+        const resultEmojiEl = document.getElementById('resultEmoji');
+        const resultTitleEl = document.getElementById('resultTitle');
+        const resultMessageEl = document.getElementById('resultMessage');
+        const correctCountEl = document.getElementById('correctCount');
+        const accuracyEl = document.getElementById('accuracy');
+        
+        const soundToggleBtn = document.getElementById('soundToggle');
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpModalBtn = document.getElementById('closeHelpModal');
+        const gotItBtn = document.getElementById('gotItBtn');
+        
+        // 初始化
+        function init() {
+            // 事件监听
+            setupEventListeners();
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 欢迎区按钮
+            startPracticeBtn.addEventListener('click', () => {
+                welcomeSection.classList.add('hidden');
+                settingsSection.classList.remove('hidden');
+            });
+            
+            viewAchievementsBtn.addEventListener('click', () => {
+                welcomeSection.classList.add('hidden');
+                achievementsSection.classList.remove('hidden');
+            });
+            
+            // 练习类型按钮
+            practiceTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    practiceTypeBtns.forEach(b => b.classList.remove('ring-2', 'ring-primary'));
+                    btn.classList.add('ring-2', 'ring-primary');
+                    currentSettings.type = btn.dataset.type;
+                });
+            });
+            
+            // 难度级别按钮
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    difficultyBtns.forEach(b => b.classList.remove('ring-2', 'ring-primary'));
+                    btn.classList.add('ring-2', 'ring-primary');
+                    currentSettings.level = btn.dataset.level;
+                });
+            });
+            
+            // 确认设置按钮
+            confirmSettingsBtn.addEventListener('click', startPractice);
+            
+            // 数字按钮
+            numberBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (userAnswer.length < 3) {
+                        userAnswer += btn.textContent;
+                        updateAnswerDisplay();
+                    }
+                });
+            });
+            
+            // 清除按钮
+            clearBtn.addEventListener('click', () => {
+                userAnswer = '';
+                updateAnswerDisplay();
+            });
+            
+            // 提交按钮
+            submitBtn.addEventListener('click', checkAnswer);
+            
+            // 听题目按钮
+            listenQuestionBtn.addEventListener('click', speakQuestion);
+            
+            // 提示按钮
+            showHintBtn.addEventListener('click', showHint);
+            
+            // 跳过按钮
+            skipQuestionBtn.addEventListener('click', nextQuestion);
+            
+            // 结果区按钮
+            retryBtn.addEventListener('click', startPractice);
+            
+            changeSettingsBtn.addEventListener('click', () => {
+                resultSection.classList.add('hidden');
+                settingsSection.classList.remove('hidden');
+            });
+            
+            backToWelcomeBtn.addEventListener('click', () => {
+                resultSection.classList.add('hidden');
+                welcomeSection.classList.remove('hidden');
+            });
+            
+            // 成就区返回按钮
+            backFromAchievementsBtn.addEventListener('click', () => {
+                achievementsSection.classList.add('hidden');
+                welcomeSection.classList.remove('hidden');
+            });
+            
+            // 练习区返回主页按钮
+            document.getElementById('backToWelcomeFromPractice').addEventListener('click', function() {
+                document.getElementById('practiceSection').classList.add('hidden');
+                document.getElementById('welcomeSection').classList.remove('hidden');
+            });
+            
+            // 设置区返回主页按钮
+            document.getElementById('backToWelcomeFromSettings').addEventListener('click', function() {
+                document.getElementById('settingsSection').classList.add('hidden');
+                document.getElementById('welcomeSection').classList.remove('hidden');
+            });
+            
+            // 声音切换按钮
+            soundToggleBtn.addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                soundToggleBtn.innerHTML = soundEnabled ? '<span class="text-xl">🔊</span>' : '<span class="text-xl">🔇</span>';
+            });
+            
+            // 帮助按钮
+            helpBtn.addEventListener('click', () => {
+                helpModal.classList.remove('hidden');
+            });
+            
+            // 关闭帮助模态框
+            closeHelpModalBtn.addEventListener('click', () => {
+                helpModal.classList.add('hidden');
+            });
+            
+            gotItBtn.addEventListener('click', () => {
+                helpModal.classList.add('hidden');
+            });
+        }
+        
+        // 开始练习
+        function startPractice() {
+            // 隐藏其他部分
+            settingsSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            practiceSection.classList.remove('hidden');
+            
+            // 初始化练习
+            currentQuestionIndex = 0;
+            correctCount = 0;
+            userAnswer = '';
+            
+            // 生成题目
+            generateQuestions();
+            
+            // 显示第一题
+            showQuestion();
+            
+            // 更新进度
+            updateProgress();
+            
+            // 朗读题目
+            speakQuestion();
+        }
+        
+        // 生成题目
+        function generateQuestions() {
+            questions = [];
+            let numRange = 5;
+            
+            // 根据难度设置数字范围
+            switch (currentSettings.level) {
+                case 'easy':
+                    numRange = 5;
+                    break;
+                case 'medium':
+                    numRange = 10;
+                    break;
+                case 'hard':
+                    numRange = 20;
+                    break;
+            }
+            
+            // 生成10道题目
+            for (let i = 0; i < 10; i++) {
+                let num1, num2, answer, operator;
+                
+                switch (currentSettings.type) {
+                    case 'addition':
+                        num1 = Math.floor(Math.random() * numRange) + 1;
+                        num2 = Math.floor(Math.random() * numRange) + 1;
+                        answer = num1 + num2;
+                        operator = '+';
+                        break;
+                    case 'subtraction':
+                        num1 = Math.floor(Math.random() * numRange) + 1;
+                        num2 = Math.floor(Math.random() * num1) + 1;
+                        answer = num1 - num2;
+                        operator = '-';
+                        break;
+                }
+                
+                questions.push({ num1, num2, operator, answer });
+            }
+        }
+        
+        // 显示题目
+        function showQuestion() {
+            currentQuestion = questions[currentQuestionIndex];
+            num1El.textContent = currentQuestion.num1;
+            operatorEl.textContent = currentQuestion.operator;
+            num2El.textContent = currentQuestion.num2;
+            userAnswer = '';
+            updateAnswerDisplay();
+            calculationVisualizationEl.classList.add('hidden');
+        }
+        
+        // 更新答案显示
+        function updateAnswerDisplay() {
+            if (userAnswer === '') {
+                answerEl.textContent = '?';
+                answerBoxEl.classList.remove('bg-success', 'bg-danger');
+            } else {
+                answerEl.textContent = userAnswer;
+            }
+        }
+        
+        // 更新进度
+        function updateProgress() {
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${currentQuestionIndex}/${questions.length}`;
+        }
+        
+        // 检查答案
+        function checkAnswer() {
+            if (userAnswer === '') return;
+            
+            const isCorrect = parseInt(userAnswer) === currentQuestion.answer;
+            
+            if (isCorrect) {
+                correctCount++;
+                answerBoxEl.classList.remove('bg-danger');
+                answerBoxEl.classList.add('bg-success');
+                speakText('正确！');
+                
+                // 延迟后进入下一题
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            } else {
+                answerBoxEl.classList.remove('bg-success');
+                answerBoxEl.classList.add('bg-danger');
+                speakText('错误，请再试一次。');
+                // 错误时不自动跳题，让用户查看提示
+            }
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                updateProgress();
+                showQuestion();
+                speakQuestion();
+            } else {
+                showResult();
+            }
+        }
+        
+        // 显示结果
+        function showResult() {
+            practiceSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            
+            const accuracy = Math.round((correctCount / questions.length) * 100);
+            
+            correctCountEl.textContent = correctCount;
+            accuracyEl.textContent = `${accuracy}%`;
+            
+            // 根据正确率显示不同的结果
+            if (accuracy === 100) {
+                resultEmojiEl.textContent = '🎉';
+                resultTitleEl.textContent = '太棒了！';
+                resultMessageEl.textContent = '你是算术小天才！';
+                speakText('恭喜你，所有题目都答对了！你是算术小天才！');
+            } else if (accuracy >= 80) {
+                resultEmojiEl.textContent = '👏';
+                resultTitleEl.textContent = '做得很好！';
+                resultMessageEl.textContent = '继续努力，你会更棒的！';
+                speakText(`恭喜你，正确率达到了${accuracy}%，做得很好！`);
+            } else if (accuracy >= 60) {
+                resultEmojiEl.textContent = '👍';
+                resultTitleEl.textContent = '不错哦！';
+                resultMessageEl.textContent = '多练习会更好的！';
+                speakText(`你的正确率是${accuracy}%，不错哦，多练习会更好的！`);
+            } else {
+                resultEmojiEl.textContent = '💪';
+                resultTitleEl.textContent = '继续加油！';
+                resultMessageEl.textContent = '相信你下次会做得更好！';
+                speakText(`你的正确率是${accuracy}%，继续加油，相信你下次会做得更好！`);
+            }
+        }
+        
+        // 朗读题目
+        function speakQuestion() {
+            if (!soundEnabled) return;
+            
+            const text = `${currentQuestion.num1} ${getOperatorText(currentQuestion.operator)} ${currentQuestion.num2} 等于多少？`;
+            speakText(text);
+        }
+        
+        // 获取运算符文本
+        function getOperatorText(operator) {
+            switch (operator) {
+                case '+': return '加';
+                case '-': return '减';
+                case '×': return '乘';
+                case '÷': return '除以';
+                default: return '';
+            }
+        }
+        
+        // 显示提示
+        function showHint() {
+            calculationVisualizationEl.classList.remove('hidden');
+            visualizationStepsEl.innerHTML = '';
+            
+            const { num1, num2, operator, answer } = currentQuestion;
+            
+            switch (operator) {
+                case '+':
+                    // 分解加法
+                    if (num1 <= 10 && num2 <= 10) {
+                        // 简单加法
+                        visualizationStepsEl.innerHTML = `
+                            <div class="flex items-center justify-center gap-4">
+                                ${Array(num1).fill('🔴').join('')}
+                                <span class="text-xl">+</span>
+                                ${Array(num2).fill('🟡').join('')}
+                                <span class="text-xl">=</span>
+                                ${Array(answer).fill('🔵').join('')}
+                            </div>
+                            <div class="text-center mb-4">
+                                <p>${num1} + ${num2} = ${answer}</p>
+                            </div>
+                            ${(num1 + num2 >= 10) ? `
+                                <div class="bg-yellow-100 p-4 rounded-lg mb-4">
+                                    <h4 class="font-bold mb-2">凑十法</h4>
+                                    <div class="flex flex-col gap-3">
+                                        <div>
+                                            <p>步骤1：把${num2}分成${10 - num1}和${num2 - (10 - num1)}</p>
+                                            <div class="flex justify-center gap-2 mt-2">
+                                                ${Array(num2).fill('🟡').join('')}
+                                                <span class="text-lg">→</span>
+                                                ${Array(10 - num1).fill('🟡').join('')}
+                                                <span class="text-lg">+</span>
+                                                ${Array(num2 - (10 - num1)).fill('🟡').join('')}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p>步骤2：${num1} + ${10 - num1} = 10</p>
+                                            <div class="flex justify-center gap-2 mt-2">
+                                                ${Array(num1).fill('🔴').join('')}
+                                                <span class="text-lg">+</span>
+                                                ${Array(10 - num1).fill('🟡').join('')}
+                                                <span class="text-lg">=</span>
+                                                ${Array(10).fill('🔵').join('')}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p>步骤3：10 + ${num2 - (10 - num1)} = ${answer}</p>
+                                            <div class="flex justify-center gap-2 mt-2">
+                                                ${Array(10).fill('🔵').join('')}
+                                                <span class="text-lg">+</span>
+                                                ${Array(num2 - (10 - num1)).fill('🟡').join('')}
+                                                <span class="text-lg">=</span>
+                                                ${Array(answer).fill('🟢').join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        // 进位加法
+                        const ones1 = num1 % 10;
+                        const tens1 = Math.floor(num1 / 10);
+                        const ones2 = num2 % 10;
+                        const tens2 = Math.floor(num2 / 10);
+                        const onesSum = ones1 + ones2;
+                        const tensSum = tens1 + tens2 + (onesSum >= 10 ? 1 : 0);
+                        const onesResult = onesSum % 10;
+                        
+                        visualizationStepsEl.innerHTML = `
+                            <div class="mb-4">
+                                <p>步骤1：分解数字</p>
+                                <div class="flex justify-center gap-8 mt-2">
+                                    <div>
+                                        <p>${num1} = ${tens1}0 + ${ones1}</p>
+                                    </div>
+                                    <div>
+                                        <p>${num2} = ${tens2}0 + ${ones2}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤2：个位相加</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${ones1} + ${ones2} = ${onesSum}</p>
+                                    ${onesSum >= 10 ? '<p class="text-primary">需要进位！</p>' : ''}
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤3：十位相加</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${tens1}0 + ${tens2}0 ${onesSum >= 10 ? '+ 10' : ''} = ${tensSum}0</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤4：合并结果</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${tensSum}0 + ${onesResult} = ${answer}</p>
+                                </div>
+                            </div>
+                            ${onesSum >= 10 ? `
+                                <div class="bg-yellow-100 p-4 rounded-lg mt-4">
+                                    <h4 class="font-bold mb-2">凑十法</h4>
+                                    <p>步骤1：把个位数字${ones2}分成${10 - ones1}和${ones2 - (10 - ones1)}</p>
+                                    <p>步骤2：${ones1} + ${10 - ones1} = 10</p>
+                                    <p>步骤3：10 + ${ones2 - (10 - ones1)} = ${onesSum}</p>
+                                    <p>步骤4：${tens1}0 + ${tens2}0 + 10 = ${answer}</p>
+                                </div>
+                            ` : ''}
+                        `;
+                    }
+                    break;
+                    
+                case '-':
+                    // 分解减法
+                    if (num1 % 10 >= num2 % 10) {
+                        // 不需要借位的减法
+                        visualizationStepsEl.innerHTML = `
+                            <div class="flex items-center justify-center gap-4">
+                                ${Array(num1).fill('🔴').join('')}
+                                <span class="text-xl">-</span>
+                                ${Array(num2).fill('🟡').join('')}
+                                <span class="text-xl">=</span>
+                                ${Array(answer).fill('🔵').join('')}
+                            </div>
+                            <div class="text-center">
+                                <p>${num1} - ${num2} = ${answer}</p>
+                            </div>
+                        `;
+                    } else {
+                        // 需要借位的减法
+                        const ones1 = num1 % 10;
+                        const tens1 = Math.floor(num1 / 10);
+                        const ones2 = num2 % 10;
+                        const tens2 = Math.floor(num2 / 10);
+                        const onesDiff = ones1 + 10 - ones2;
+                        const tensDiff = tens1 - 1 - tens2;
+                        
+                        visualizationStepsEl.innerHTML = `
+                            <div class="mb-4">
+                                <p>步骤1：分解数字</p>
+                                <div class="flex justify-center gap-8 mt-2">
+                                    <div>
+                                        <p>${num1} = ${tens1}0 + ${ones1}</p>
+                                    </div>
+                                    <div>
+                                        <p>${num2} = ${tens2}0 + ${ones2}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤2：个位相减（需要借位）</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${ones1} < ${ones2}，所以从十位借10</p>
+                                    <p>${ones1} + 10 = ${ones1 + 10}</p>
+                                    <p>${ones1 + 10} - ${ones2} = ${onesDiff}</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤3：十位相减（注意已经借了1）</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${tens1}0 - 10 = ${tens1 - 1}0</p>
+                                    <p>${tens1 - 1}0 - ${tens2}0 = ${tensDiff}0</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p>步骤4：合并结果</p>
+                                <div class="flex justify-center gap-4 mt-2">
+                                    <p>${tensDiff}0 + ${onesDiff} = ${answer}</p>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-100 p-4 rounded-lg mt-4">
+                                <h4 class="font-bold mb-2">破十法</h4>
+                                <div class="flex flex-col gap-3">
+                                    <div>
+                                        <p>步骤1：把${num1}分成10和${num1 - 10}</p>
+                                        <div class="flex justify-center gap-2 mt-2">
+                                            ${Array(num1).fill('🔴').join('')}
+                                            <span class="text-lg">→</span>
+                                            ${Array(10).fill('🔴').join('')}
+                                            <span class="text-lg">+</span>
+                                            ${Array(num1 - 10).fill('🔴').join('')}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p>步骤2：10 - ${ones2} = ${10 - ones2}</p>
+                                        <div class="flex justify-center gap-2 mt-2">
+                                            ${Array(10).fill('🔴').join('')}
+                                            <span class="text-lg">-</span>
+                                            ${Array(ones2).fill('🟡').join('')}
+                                            <span class="text-lg">=</span>
+                                            ${Array(10 - ones2).fill('🔵').join('')}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p>步骤3：${10 - ones2} + ${num1 - 10} = ${answer}</p>
+                                        <div class="flex justify-center gap-2 mt-2">
+                                            ${Array(10 - ones2).fill('🔵').join('')}
+                                            <span class="text-lg">+</span>
+                                            ${Array(num1 - 10).fill('🔴').join('')}
+                                            <span class="text-lg">=</span>
+                                            ${Array(answer).fill('🟢').join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+            }
+            
+            // 朗读提示
+            speakText('提示：' + getHintText());
+        }
+        
+        // 获取提示文本
+        function getHintText() {
+            const { num1, num2, operator, answer } = currentQuestion;
+            
+            switch (operator) {
+                case '+':
+                    return `${num1}加${num2}等于${answer}`;
+                case '-':
+                    return `${num1}减${num2}等于${answer}`;
+                default:
+                    return '';
+            }
+        }
+        
+        // 朗读文本
+        function speakText(text) {
+            if (!soundEnabled) return;
+            
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'zh-CN';
+            speech.rate = 0.95; // 稍慢但更自然
+            speech.pitch = 1.0; // 正常音调
+            speech.volume = 1;
+            
+            // 尝试选择更自然的中文语音
+            const voices = speechSynthesis.getVoices();
+            const chineseVoice = voices.find(voice => 
+                voice.lang === 'zh-CN' || 
+                voice.lang === 'zh' ||
+                voice.name.includes('Chinese') ||
+                voice.name.includes('中文')
+            );
+            
+            if (chineseVoice) {
+                speech.voice = chineseVoice;
+            }
+            
+            speechSynthesis.speak(speech);
+        }
+        
+        // 预加载语音列表
+        window.speechSynthesis.onvoiceschanged = function() {
+            // 语音列表加载完成，无需额外操作
+        };
+        
+        // 初始化应用
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
