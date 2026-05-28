@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一年级识字大闯关（300字勋章版）</title>
+    <style>
+        :root {
+            --primary-color: #FF9800;
+            --success-color: #4CAF50;
+            --error-color: #e57373;
+            --bg-color: #f0f9ff;
+        }
+
+        body {
+            font-family: "KaiTi", "STKaiti", "KaiTi", sans-serif; 
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* 界面切换控制 */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* 1. 主主页/选关界面样式 */
+        .main-title { font-size: 2.2em; color: #E65100; margin-bottom: 5px; }
+        .main-subtitle { font-size: 1.2em; color: #666; margin-bottom: 25px; }
+        
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .level-btn {
+            background: #fff;
+            border: 3px solid #ccc;
+            border-radius: 15px;
+            padding: 15px 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ccc;
+            transition: all 0.2s;
+        }
+        .level-btn.unlocked {
+            border-color: #4CAF50;
+            color: #2E7D32;
+            box-shadow: 0 4px 0 #2E7D32;
+            background: #e8f5e9;
+        }
+        .level-btn.unlocked:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #2E7D32;
+        }
+        .level-btn.locked {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        .badge-icon { font-size: 1.4em; margin-top: 5px; display: block;}
+
+        /* 2. 游戏界面样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .question-box {
+            background: #FFEB3B; 
+            padding: 20px; 
+            border-radius: 20px; 
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .pinyin-text { font-size: 3em; color: #333; letter-spacing: 2px; }
+        .meaning-text { font-size: 1.2em; color: #666; margin-top: 5px; }
+        .audio-icon { font-size: 1.3em; margin-left: 10px; vertical-align: middle; animation: pulse 1.5s infinite;}
+
+        .options-container { display: flex; flex-direction: column; gap: 12px; }
+
+        .option-btn {
+            background-color: white;
+            border: 3px solid var(--primary-color);
+            color: #333;
+            padding: 12px 20px;
+            font-size: 2.2em; 
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #FF9800; 
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .option-btn:hover:not(.disabled) { background-color: #fffde7; }
+        .option-btn:active:not(.disabled) { transform: translateY(4px); box-shadow: 0 0px 0 #FF9800; }
+
+        /* 状态判定 */
+        .option-btn.correct {
+            background-color: var(--success-color) !important;
+            border-color: #2E7D32 !important;
+            color: white !important;
+            box-shadow: 0 4px 0 #2E7D32 !important;
+            animation: pop 0.3s ease forwards;
+        }
+        .option-btn.wrong {
+            background-color: var(--error-color) !important;
+            border-color: #C62828 !important;
+            color: white !important;
+            box-shadow: 0 4px 0 #C62828 !important;
+            animation: shake 0.4s ease forwards;
+        }
+        .option-btn.disabled { cursor: not-allowed; opacity: 0.5; }
+        .option-btn.correct.disabled, .option-btn.wrong.disabled { opacity: 1; }
+
+        .footer-btns { margin-top: 20px; display: flex; justify-content: center; gap: 10px;}
+        .action-btn {
+            padding: 10px 30px; font-size: 1.2em; border: none; border-radius: 50px;
+            cursor: pointer; font-weight: bold; background-color: #2196F3; color: white;
+            box-shadow: 0 4px 0 #1976D2; display: none; 
+        }
+
+        /* 3. 奖励弹窗（全屏礼花与奖章） */
+        .reward-overlay {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center;
+        }
+        .reward-box {
+            background: white; width: 85%; max-width: 400px; padding: 30px; border-radius: 25px;
+            text-align: center; animation: pop 0.5s ease-out; box-shadow: 0 0 20px #FFD700;
+        }
+        .reward-title { font-size: 2em; color: #FF3D00; font-weight: bold; margin-bottom: 10px;}
+        .big-badge { font-size: 5em; margin: 15px 0; animation: pulse 2s infinite; display: inline-block;}
+        .reward-desc { font-size: 1.3em; color: #444; margin-bottom: 25px; line-height: 1.5;}
+        .reward-close-btn {
+            background: #FF9800; color: white; border: none; padding: 12px 40px;
+            font-size: 1.2em; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 0 #E65100;
+        }
+
+        /* 重置按钮 */
+        .reset-btn {
+            background: none; border: none; color: #999; text-decoration: underline; 
+            margin-top: 15px; cursor: pointer; font-size: 0.9em;
+        }
+
+        /* 动画库 */
+        @keyframes pop { 0% { transform: scale(0.8); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    </style>
+</head>
+<body>
+
+<div class="reward-overlay" id="reward-screen">
+    <div class="reward-box">
+        <div class="reward-title">🎉 恭喜通关 🎉</div>
+        <div class="big-badge" id="reward-icon">🏅</div>
+        <div class="reward-desc" id="reward-text">你太棒了！成功通过本关！</div>
+        <button class="reward-close-btn" onclick="closeRewardScreen()">收下奖励</button>
+    </div>
+</div>
+
+<div class="container">
+    <div id="menu-page" class="page active">
+        <div class="main-title">识字大闯关</div>
+        <div class="main-subtitle">📖 一年级核心 300 字挑战</div>
+        <div class="level-grid" id="level-buttons-area">
+            </div>
+        <button class="reset-btn" onclick="resetProgress()">清除记录重新开始</button>
+    </div>
+
+    <div id="game-page" class="page">
+        <div class="header">
+            <span id="score-text">得分：0 / 30</span>
+            <span id="timer-text">⏱️ 12 秒</span>
+        </div>
+
+        <div class="question-box" onclick="speakCurrentQuestion()" title="点我重新读题">
+            <div class="pinyin-text">
+                <span id="pinyin-area">--</span>
+                <span class="audio-icon">🔊</span>
+            </div>
+            <div class="meaning-text" id="meaning-area">含义加载中...</div>
+        </div>
+
+        <div class="options-container" id="options-area">
+            </div>
+
+        <div class="footer-btns">
+            <button class="action-btn" style="background:#9e9e9e; box-shadow:0 4px 0 #757575; display:block;" onclick="backToMenu()">返回选关</button>
+            <button id="action-btn" class="action-btn" onclick="nextQuestion()">下一题</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. 一年级教育部核心 300 字库 ---
+    // 按每 30 个字分为一组关卡，共 10 关
+    const allLevelsData = [
+        // 第一关：基础数字与天地人
+        [
+            {word:"一", pinyin:"yī", meaning:"数字一"}, {word:"二", pinyin:"èr", meaning:"数字二"}, {word:"三", pinyin:"sān", meaning:"数字三"}, {word:"四", pinyin:"sì", meaning:"数字四"}, {word:"五", pinyin:"wǔ", meaning:"数字五"},
+            {word:"六", pinyin:"liù", meaning:"数字六"}, {word:"七", pinyin:"qī", meaning:"数字七"}, {word:"八", pinyin:"bā", meaning:"数字八"}, {word:"九", pinyin:"jiǔ", meaning:"数字九"}, {word:"十", pinyin:"shí", meaning:"数字十"},
+            {word:"天", pinyin:"tiān", meaning:"天空的天"}, {word:"地", pinyin:"dì", meaning:"大地的地"}, {word:"人", pinyin:"rén", meaning:"人类的人"}, {word:"你", pinyin:"nǐ", meaning:"你好的你"}, {word:"我", pinyin: "wǒ", meaning:"我们的我"},
+            {word:"他", pinyin:"tā", meaning:"他们的他"}, {word:"日", pinyin:"rì", meaning:"太阳的日"}, {word:"月", pinyin:"yuè", meaning:"月亮的月"}, {word:"水", pinyin:"shuǐ", meaning:"喝水的水"}, {word:"火", pinyin:"huǒ", meaning:"大火的火"},
+            {word:"山", pinyin:"shān", meaning:"大山的山"}, {word:"石", pinyin:"shí", meaning:"石头的石"}, {word:"田", pinyin:"tián", meaning:"田地的田"}, {word:"禾", pinyin:"hé", meaning:"禾苗的禾"}, {word:"对", pinyin:"duì", meaning:"对错的对"},
+            {word:"云", pinyin:"yún", meaning:"白云的云"}, {word:"雨", pinyin:"yǔ", meaning:"下雨的雨"}, {word:"风", pinyin:"fēng", meaning:"刮风的风"}, {word:"花", pinyin:"huā", meaning:"红花的花"}, {word:"鸟", pinyin:"niǎo", meaning:"小鸟的鸟"}
+        ],
+        // 第二关：动物与人体五官
+        [
+            {word:"虫", pinyin:"chóng", meaning:"昆虫的虫"}, {word:"鱼", pinyin:"yú", meaning:"游鱼的鱼"}, {word:"牛", pinyin:"niú", meaning:"水牛的牛"}, {word:"羊", pinyin:"yáng", meaning:"绵羊的羊"}, {word:"马", pinyin:"mǎ", meaning:"小马的马"},
+            {word:"猫", pinyin:"māo", meaning:"小猫的猫"}, {word:"口", pinyin:"kǒu", meaning:"人口的口"}, {word:"耳", pinyin:"ěr", meaning:"耳朵的耳"}, {word:"目", pinyin:"mù", meaning:"目光的目"}, {word:"手", pinyin:"shǒu", meaning:"双手的手"},
+            {word:"足", pinyin:"zú", meaning:"双足的足"}, {word:"舌", pinyin:"shé", meaning:"舌头的舌"}, {word:"牙", pinyin:"yá", meaning:"牙齿的牙"}, {word:"心", pinyin:"xīn", meaning:"爱心的心"}, {word:"头", pinyin:"tóu", meaning:"头发的头"},
+            {word:"皮", pinyin:"pí", meaning:"皮肤的皮"}, {word:"大", pinyin:"dà", meaning:"大小的大"}, {word:"小", pinyin:"xiǎo", meaning:"大小的小"}, {word:"多", pinyin:"duō", meaning:"多少的多"}, {word:"少", pinyin:"shǎo", meaning:"多少的少"},
+            {word:"上", pinyin:"shàng", meaning:"上下的上"}, {word:"下", pinyin:"xià", meaning:"上下的下"}, {word:"左", pinyin:"zuǒ", meaning:"左右的左"}, {word:"右", pinyin:"yòu", meaning:"左右的右"}, {word:"前", pinyin:"qián", meaning:"前后的前"},
+            {word:"后", pinyin:"hòu", meaning:"前后的后"}, {word:"东", pinyin:"dōng", meaning:"东方旭日"}, {word:"西", pinyin:"xī", meaning:"西方的西"}, {word:"南", pinyin:"nán", meaning:"南方的南"}, {word:"北", pinyin:"běi", meaning:"北方的北"}
+        ],
+        // 第三关：日常生活与基础动作
+        [
+            {word:"出", pinyin:"chū", meaning:"出入的出"}, {word:"入", pinyin:"rù", meaning:"出入的入"}, {word:"坐", pinyin:"zuò", meaning:"请坐的坐"}, {word:"走", pinyin:"zǒu", meaning:"走路的走"}, {word:"立", pinyin:"lì", meaning:"起立的立"},
+            {word:"去", pinyin:"qù", meaning:"来去的去"}, {word:"来", pinyin:"lái", meaning:"来去的来"}, {word:"开", pinyin:"kāi", meaning:"开门的开"}, {word:"关", pinyin:"guān", meaning:"开关的关"}, {word:"看", pinyin:"kàn", meaning:"看见的看"},
+            {word:"听", pinyin:"tīng", meaning:"听话的听"}, {word:"说", pinyin:"shuō", meaning:"说话的说"}, {word:"笑", pinyin:"xiào", meaning:"微笑的笑"}, {word:"哭", pinyin:"kū", meaning:"哭泣的哭"}, {word:"见", pinyin:"jiàn", meaning:"再见的见"},
+            {word:"白", pinyin:"bái", meaning:"白云的白"}, {word:"红", pinyin:"hóng", meaning:"红色的红"}, {word:"绿", pinyin:"lǜ", meaning:"绿色的绿"}, {word:"黄", pinyin:"huáng", meaning:"黄色的黄"}, {word:"蓝", pinyin:"lán", meaning:"蓝天的蓝"},
+            {word:"长", pinyin:"cháng", meaning:"长短的长"}, {word:"短", pinyin:"duǎn", meaning:"长短的短"}, {word:"早", pinyin:"zǎo", meaning:"早上的早"}, {word:"晚", pinyin:"wǎn", meaning:"晚上的晚"}, {word:"春", pinyin:"chūn", meaning:"春天的春"},
+            {word:"夏", pinyin:"xià", meaning:"夏天的夏"}, {word:"秋", pinyin:"qiū", meaning:"秋天的秋"}, {word:"冬", pinyin:"dōng", meaning:"冬天的冬"}, {word:"工", pinyin:"gōng", meaning:"做工的工"}, {word:"厂", pinyin:"chǎng", meaning:"工厂的厂"}
+        ],
+        // 第四关：校园与家庭
+        [
+            {word:"家", pinyin:"jiā", meaning:"家庭的家"}, {word:"是", pinyin:"shì", meaning:"是不是的是"}, {word:"好", pinyin:"hǎo", meaning:"好人的好"}, {word:"快", pinyin:"kuài", meaning:"快乐的快"}, {word:"慢", pinyin:"màn", meaning:"慢动作的慢"},
+            {word:"书", pinyin:"shū", meaning:"看书的书"}, {word:"本", pinyin:"běn", meaning:"书本的本"}, {word:"学", pinyin:"xué", meaning:"上学的学"}, {word:"生", pinyin:"shēng", meaning:"学生的生"}, {word:"土", pinyin:"tǔ", meaning:"土地的土"},
+            {word:"儿", pinyin:"ér", meaning:"儿子的儿"}, {word:"子", pinyin:"zǐ", meaning:"儿子的子"}, {word:"里", pinyin:"lǐ", meaning:"里面的里"}, {word:"外", pinyin:"wài", meaning:"外面的外"}, {word:"男", pinyin:"nán", meaning:"男生的男"},
+            {word:"女", pinyin:"nǚ", meaning:"女生的女"}, {word:"开", pinyin:"kāi", meaning:"开心的开"}, {word:"心", pinyin:"xīn", meaning:"心情的心"}, {word:"文", pinyin:"wén", meaning:"语文的文"}, {word:"字", pinyin:"zì", meaning:"汉字的字"},
+            {word:"向", pinyin:"xiàng", meaning:"方向的向"}, {word:"打", pinyin:"dǎ", meaning:"打电话的打"}, {word:"把", pinyin:"bǎ", meaning:"火把的把"}, {word:"飞", pinyin:"fēi", meaning:"飞机的飞"}, {word:"机", pinyin:"jī", meaning:"飞机的机"},
+            {word:"朋", pinyin:"péng", meaning:"朋友的朋"}, {word:"友", pinyin:"yǒu", meaning:"朋友的友"}, {word:"太", pinyin:"tài", meaning:"太阳的太"}, {word:"阳", pinyin:"yáng", meaning:"太阳的阳"}, {word:"早", pinyin:"zǎo", meaning:"早起的早"}
+        ],
+        // 第五关：大自然探秘
+        [
+            {word:"叶", pinyin:"yè", meaning:"树叶的叶"}, {word:"草", pinyin:"cǎo", meaning:"青草的草"}, {word:"竹", pinyin:"zhú", meaning:"竹子的竹"}, {word:"排", pinyin:"pái", meaning:"排队的排"}, {word:"中", pinyin:"zhōng", meaning:"中国的中"},
+            {word:"游", pinyin:"yóu", meaning:"游泳的游"}, {word:"流", pinyin:"liú", meaning:"流水的流"}, {word:"江", pinyin:"jiāng", meaning:"长江的江"}, {word:"南", pinyin:"nán", meaning:"江南的南"}, {word:"可", pinyin:"kě", meaning:"可以的可"},
+            {word:"采", pinyin:"cǎi", meaning:"采莲的采"}, {word:"莲", pinyin:"lián", meaning:"采莲的莲"}, {word:"戏", pinyin:"xì", meaning:"游戏的戏"}, {word:"间", pinyin:"jiān", meaning:"房间的间"}, {word:"田", pinyin:"tián", meaning:"田野的田"},
+            {word:"北", pinyin:"běi", meaning:"北方的北"}, {word:"尖", pinyin:"jiān", meaning:"尖尖的尖"}, {word:"说", pinyin:"shuō", meaning:"说话的说"}, {word:"春", pinyin:"chūn", meaning:"春天的春"}, {word:"青", pinyin:"qīng", meaning:"青色的青"},
+            {word:"蛙", pinyin:"wā", meaning:"青蛙的蛙"}, {word:"夏", pinyin:"xià", meaning:"夏天的夏"}, {word:"弯", pinyin:"wān", meaning:"弯弯的弯"}, {word:"就", pinyin:"jiù", meaning:"就是的就"}, {word:"冬", pinyin:"dōng", meaning:"冬天的冬"},
+            {word:"顽", pinyin:"wán", meaning:"顽皮的顽"}, {word:"皮", pinyin:"pí", meaning:"皮球的皮"}, {word:"地", pinyin:"de", meaning:"轻轻地"}, {word:"天", pinyin:"tiān", meaning:"蓝天的天"}, {word:"四", pinyin:"sì", meaning:"四季的四"}
+        ],
+        // 第六关：时间与变化
+        [
+            {word:"秋", pinyin:"qiū", meaning:"秋天的秋"}, {word:"气", pinyin:"qì", meaning:"天气的气"}, {word:"了", pinyin:"le", meaning:"走了解"}, {word:"树", pinyin:"shù", meaning:"大树的树"}, {word:"凉", pinyin:"liáng", meaning:"凉快的凉"},
+            {word:"叶", pinyin:"yè", meaning:"落叶的叶"}, {word:"片", pinyin:"piàn", meaning:"一片片"}, {word:"飞", pinyin:"fēi", meaning:"飞翔的飞"}, {word:"会", pinyin:"huì", meaning:"开会的会"}, {word:"个", pinyin:"gè", meaning:"一个两"},
+            {word:"排", pinyin:"pái", meaning:"一排排"}, {word:"成", pinyin:"chéng", meaning:"成长的成"}, {word:"大", pinyin:"dà", meaning:"大小的大"}, {word:"字", pinyin:"zì", meaning:"写字的字"}, {word:"人", pinyin:"rén", meaning:"大人的人"},
+            {word:"天", pinyin:"tiān", meaning:"阴天的天"}, {word:"向", pinyin:"xiàng", meaning:"向往的向"}, {word:"看", pinyin:"kàn", meaning:"观看的看"}, {word:"的", pinyin:"de", meaning:"美丽的"}, {word:"船", pinyin:"chuán", meaning:"小船的船"},
+            {word:"两", pinyin:"liǎng", meaning:"两个的两"}, {word:"头", pinyin:"tóu", meaning:"两头尖"}, {word:"在", pinyin:"zài", meaning:"在家的在"}, {word:"里", pinyin:"lǐ", meaning:"船舱里"}, {word:"只", pinyin:"zhǐ", meaning:"只有的只"},
+            {word:"看", pinyin:"kàn", meaning:"看见的看"}, {word:"见", pinyin:"jiàn", meaning:"看见的见"}, {word:"闪", pinyin:"shǎn", meaning:"闪闪的闪"}, {word:"星", pinyin:"xīng", meaning:"星星的星"}, {word:"蓝", pinyin:"lán", meaning:"蓝天白云"}
+        ],
+        // 第七关：生活技能与探索
+        [
+            {word:"影", pinyin:"yǐng", meaning:"影子的影"}, {word:"前", pinyin:"qián", meaning:"前边的前"}, {word:"后", pinyin:"hòu", meaning:"后边的后"}, {word:"常", pinyin:"cháng", meaning:"经常的常"}, {word:"跟", pinyin:"gēn", meaning:"跟着的跟"},
+            {word:"着", pinyin:"zhe", meaning:"跟着的着"}, {word:"黑", pinyin:"hēi", meaning:"黑色的黑"}, {word:"狗", pinyin:"gǒu", meaning:"小狗的狗"}, {word:"它", pinyin:"tā", meaning:"它们之它"}, {word:"好", pinyin:"hǎo", meaning:"好朋友"},
+            {word:"朋", pinyin:"péng", meaning:"朋友的朋"}, {word:"友", pinyin:"yǒu", meaning:"朋友的友"}, {word:"左", pinyin:"zuǒ", meaning:"左边"}, {word:"右", pinyin:"yòu", meaning:"右边"}, {word:"常", pinyin:"cháng", meaning:"常常的常"},
+            {word:"陪", pinyin:"péi", meaning:"陪伴的陪"}, {word:"我", pinyin:"wǒ", meaning:"陪着我"}, {word:"不", pinyin:"bù", meaning:"不是的不"}, {word:"离", pinyin:"lí", meaning:"不离不弃"}, {word:"开", pinyin:"kāi", meaning:"离开的开"},
+            {word:"比", pinyin:"bǐ", meaning:"评比的比"}, {word:"尾", pinyin:"wěi", meaning:"尾巴的尾"}, {word:"巴", pinyin:"ba", meaning:"尾巴的巴"}, {word:"谁", pinyin:"shéi", meaning:"是谁的谁"}, {word:"长", pinyin:"cháng", meaning:"长短的长"},
+            {word:"短", pinyin:"duǎn", meaning:"长短的短"}, {word:"一", pinyin:"yī", meaning:"一把伞"}, {word:"把", pinyin:"bǎ", meaning:"车把的把"}, {word:"伞", pinyin:"sǎn", meaning:"雨伞的伞"}, {word:"猴", pinyin:"hóu", meaning:"猴子的猴"}
+        ],
+        // 第八关：大自然和小动物
+        [
+            {word:"松", pinyin:"sōng", meaning:"松树的松"}, {word:"鼠", pinyin:"shǔ", meaning:"松鼠的鼠"}, {word:"扁", pinyin:"biǎn", meaning:"扁担的扁"}, {word:"鸭", pinyin:"yā", meaning:"鸭子的鸭"}, {word:"最", pinyin:"zuì", meaning:"最好的最"},
+            {word:"公", pinyin:"gōng", meaning:"公鸡的公"}, {word:"鸡", pinyin:"jī", meaning:"公鸡的鸡"}, {word:"写", pinyin:"xiě", meaning:"写字的写"}, {word:"诗", pinyin:"shī", meaning:"古诗的诗"}, {word:"点", pinyin:"diǎn", meaning:"雨点儿"},
+            {word:"要", pinyin:"yào", meaning:"需要的要"}, {word:"过", pinyin:"guò", meaning:"过去的过"}, {word:"给", pinyin:"gěi", meaning:"送给的给"}, {word:"当", pinyin:"dāng", meaning:"当心当"}, {word:"串", pinyin:"chuàn", meaning:"串起来"},
+            {word:"们", pinyin:"men", meaning:"人们的们"}, {word:"以", pinyin:"yǐ", meaning:"可以的以"}, {word:"后", pinyin:"hòu", meaning:"以后的后"}, {word:"成", pinyin:"chéng", meaning:"成果的成"}, {word:"数", pinyin:"shǔ", meaning:"数不清"},
+            {word:"彩", pinyin:"cǎi", meaning:"云彩的彩"}, {word:"落", pinyin:"luò", meaning:"飘落的落"}, {word:"空", pinyin:"kōng", meaning:"天空的空"}, {word:"问", pinyin:"wèn", meaning:"提问的问"}, {word:"答", pinyin:"dá", meaning:"回答的答"},
+            {word:"方", pinyin:"fāng", meaning:"地方的方"}, {word:"没", pinyin:"méi", meaning:"没有的没"}, {word:"更", pinyin:"gèng", meaning:"更加的更"}, {word:"绿", pinyin:"lǜ", meaning:"更绿了"}, {word:"红", pinyin:"hóng", meaning:"更红了"}
+        ],
+        // 第九关：探索世界
+        [
+            {word:"古", pinyin:"gǔ", meaning:"古代的古"}, {word:"凉", pinyin:"liáng", meaning:"凄凉凉"}, {word:"细", pinyin:"xì", meaning:"细雨的细"}, {word:"夕", pinyin:"xī", meaning:"夕阳的夕"}, {word:"李", pinyin:"lǐ", meaning:"李子的李"},
+            {word:"香", pinyin:"xiāng", meaning:"香气"}, {word:"打", pinyin:"dǎ", meaning:"打球的打"}, {word:"拍", pinyin:"pāi", meaning:"拍手的拍"}, {word:"跑", pinyin:"pǎo", meaning:"跑步的跑"}, {word:"足", pinyin:"zú", meaning:"足球的足"},
+            {word:"声", pinyin:"shēng", meaning:"声音的声"}, {word:"身", pinyin:"shēn", meaning:"身体的身"}, {word:"体", pinyin:"tǐ", meaning:"身体的体"}, {word:"之", pinyin:"zhī", meaning:"百分之之"}, {word:"初", pinyin:"chū", meaning:"初学者"},
+            {word:"性", pinyin:"xìng", meaning:"天性"}, {word:"善", pinyin:"shàn", meaning:"善良的善"}, {word:"习", pinyin:"xí", meaning:"学习的习"}, {word:"远", pinyin:"yuǎn", meaning:"远近的远"}, {word:"玉", pinyin:"yù", meaning:"玉石的玉"},
+            {word:"器", pinyin:"qì", meaning:"电器的器"}, {word:"义", pinyin:"yì", meaning:"正义的义"}, {word:"饭", pinyin:"fàn", meaning:"吃饭的饭"}, {word:"能", pinyin:"néng", meaning:"能力的能"}, {word:"饱", pinyin:"bǎo", meaning:"饱满饱"},
+            {word:"茶", pinyin:"chá", meaning:"喝茶的茶"}, {word:"泡", pinyin:"pào", meaning:"泡茶的泡"}, {word:"轻", pinyin:"qīng", meaning:"轻重的轻"}, {word:"鞭", pinyin:"biān", meaning:"鞭子"}, {word:"炮", pinyin:"pào", meaning:"鞭炮"}
+        ],
+        // 第十关：冲刺博学大师
+        [
+            {word:"姓", pinyin:"xìng", meaning:"姓名的姓"}, {word:"什", pinyin:"shén", meaning:"什么"}, {word:"么", pinyin:"me", meaning:"什么是么"}, {word:"双", pinyin:"shuāng", meaning:"双手双"}, {word:"国", pinyin:"guó", meaning:"中国的国"},
+            {word:"王", pinyin:"wáng", meaning:"大王"}, {word:"方", pinyin:"fāng", meaning:"东方"}, {word:"青", pinyin:"qīng", meaning:"青草"}, {word:"清", pinyin:"qīng", meaning:"清水"}, {word:"气", pinyin:"qì", meaning:"生气"},
+            {word:"晴", pinyin:"qíng", meaning:"晴天"}, {word:"情", pinyin:"qíng", meaning:"心情"}, {word:"请", pinyin:"qǐng", meaning:"请坐"}, {word:"生", pinyin:"shēng", meaning:"出生"}, {word:"眼", pinyin:"yǎn", meaning:"眼睛"},
+            {word:"睛", pinyin:"jīng", meaning:"眼睛的睛"}, {word:"保", pinyin:"bǎo", meaning:"保护"}, {word:"护", pinyin:"hù", meaning:"爱护"}, {word:"害", pinyin:"hài", meaning:"害虫"}, {word:"事", pinyin:"shì", meaning:"事情"},
+            {word:"情", pinyin:"qíng", meaning:"事情的情"}, {word:"相", pinyin:"xiāng", meaning:"互相"}, {word:"遇", pinyin:"yù", meaning:"遇到"}, {word:"喜", pinyin:"xǐ", meaning:"喜欢"}, {word:"欢", pinyin:"huān", meaning:"欢乐"},
+            {word:"怕", pinyin:"pà", meaning:"害怕"}, {word:"言", pinyin:"yán", meaning:"语言"}, {word:"互", pinyin:"hù", meaning:"互相的互"}, {word:"令", pinyin:"lìng", meaning:"口令"}, {word:"动", pinyin:"dòng", meaning:"感动"}
+        ]
+    ];
+
+    // 勋章配置（每关过后的专属奖励）
+    const badges = ["👶 识字小白", "🥉 初学达人", "🥈 识字能手", "🥇 朗读标兵", "🌸 智慧花朵", "🚀 冲天小将", "⭐ 识字之星", "🔮 词汇法师", "👑 拼音国之王", "🏆 博学小神童"];
+
+    // --- 2. 游戏核心变量 ---
+    let currentLevel = 0;      // 当前正在挑战哪一关
+    let unlockedLevel = 0;     // 已经解锁的最高关卡 (从 0 开始)
+    let currentQuestions = [];  // 当前关打乱后的题库
+    let currentIndex = 0;      // 关卡内的当前题目序号
+    let score = 0;             // 本关得分
+    let timeLeft = 12;
+    let timerInterval = null;
+    let isAnswered = false;
+    let currentQuestion = null;
+
+    // --- 3. 初始化与本地保存记录 ---
+    window.onload = function() {
+        // 读取存储
+        const savedProgress = localStorage.getItem('grade1_识字量_levelProgress');
+        if (savedProgress) {
+            unlockedLevel = parseInt(savedProgress);
+        }
+        renderLevelButtons();
+    };
+
+    // 渲染主界面的关卡列表
+    function renderLevelButtons() {
+        const area = document.getElementById('level-buttons-area');
+        area.innerHTML = '';
+        
+        for (let i = 0; i < 10; i++) {
+            const btn = document.createElement('button');
+            if (i <= unlockedLevel) {
+                btn.className = 'level-btn unlocked';
+                btn.onclick = () => startLevel(i);
+                // 如果通关了，显示勋章
+                const badgeText = i < unlockedLevel ? `<span class="badge-icon">${badges[i]}</span>` : `<span class="badge-icon" style="opacity:0.4">⏳ 挑战中</span>`;
+                btn.innerHTML = `第 ${i+1} 关<br>(对30字奖励)${badgeText}`;
+            } else {
+                btn.className = 'level-btn locked';
+                btn.innerHTML = `第 ${i+1} 关<br><span class="badge-icon">🔒 锁定了</span>`;
+            }
+            area.appendChild(btn);
+        }
+    }
+
+    // --- 4. 开启某一关卡 ---
+    function startLevel(levelIdx) {
+        currentLevel = levelIdx;
+        // 复制题库，并完全随机打乱
+        currentQuestions = [...allLevelsData[levelIdx]].sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+        score = 0;
+        
+        document.getElementById('menu-page').classList.remove('active');
+        document.getElementById('game-page').classList.add('active');
+        loadQuestion();
+    }
+
+    // --- 5. 核心加载题目 ---
+    function loadQuestion() {
+        isAnswered = false;
+        document.getElementById('action-btn').style.display = 'none';
+        
+        currentQuestion = currentQuestions[currentIndex];
+        document.getElementById('score-text').textContent = `得分：${score} | 进度：${currentIndex + 1}/30`;
+        
+        document.getElementById('pinyin-area').textContent = currentQuestion.pinyin;
+        document.getElementById('meaning-area').textContent = `提示：${currentQuestion.meaning}`;
+
+        // 从本关 30 个字中，随机抽 3 个不重复的字做干扰项
+        const distractors = allLevelsData[currentLevel]
+            .filter(item => item.word !== currentQuestion.word)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3)
+            .map(item => item.word);
+
+        // 合并并重新乱序
+        const options = [currentQuestion.word, ...distractors].sort(() => Math.random() - 0.5);
+
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = '';
+        options.forEach(word => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = word;
+            btn.onclick = () => selectOption(word, btn);
+            optionsArea.appendChild(btn);
+        });
+
+        startTimer();
+        speakCurrentQuestion();
+    }
+
+    // --- 6. 语音发音 ---
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN'; 
+            utterance.rate = 0.8;    // 慢语速
+            utterance.pitch = 1.15;  // 稍高音调，亲切
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function speakCurrentQuestion() {
+        if (currentQuestion) {
+            speak(`${currentQuestion.word}。${currentQuestion.meaning}`);
+        }
+    }
+
+    // --- 7. 倒计时 ---
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 12;
+        document.getElementById('timer-text').textContent = `⏱️ ${timeLeft} 秒`;
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-text').textContent = `⏱️ ${timeLeft} 秒`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    // --- 8. 答案判定 ---
+    function selectOption(selectedWord, clickedBtn) {
+        if (isAnswered) return;
+        isAnswered = true;
+        clearInterval(timerInterval);
+        window.speechSynthesis.cancel();
+
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => btn.classList.add('disabled'));
+
+        if (selectedWord === currentQuestion.word) {
+            clickedBtn.classList.add('correct');
+            score++;
+            document.getElementById('score-text').textContent = `得分：${score} | 进度：${currentIndex + 1}/30`;
+        } else {
+            clickedBtn.classList.add('wrong');
+            allButtons.forEach(btn => {
+                if (btn.textContent === currentQuestion.word) btn.classList.add('correct');
+            });
+        }
+        showActionMenu();
+    }
+
+    function handleTimeOut() {
+        isAnswered = true;
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => {
+            btn.classList.add('disabled');
+            if (btn.textContent === currentQuestion.word) btn.classList.add('correct');
+        });
+        showActionMenu();
+    }
+
+    function showActionMenu() {
+        const nextBtn = document.getElementById('action-btn');
+        if (currentIndex >= 29) {
+            nextBtn.textContent = "完成关卡";
+        } else {
+            nextBtn.textContent = "下一题";
+        }
+        nextBtn.style.display = 'block';
+    }
+
+    // --- 9. 切题与终极大奖励处理 ---
+    function nextQuestion() {
+        if (currentIndex < 29) {
+            currentIndex++;
+            loadQuestion();
+        } else {
+            // 本关 30 题结束
+            if (score >= 24) {  // 满分30，对24道题（80%）以上算及格过关，可调整
+                // 成功过关，触发奖励
+                if (currentLevel === unlockedLevel) {
+                    unlockedLevel++;
+                    localStorage.setItem('grade1_识字量_levelProgress', unlockedLevel);
+                }
+                showRewardScreen();
+            } else {
+                // 没通过
+                alert(`😟 差一点点哦！本关拿到了 ${score} 分（需要满24分才能拿到勋章）。\n让我们再挑战一次吧！`);
+                startLevel(currentLevel); // 重新这一关
+            }
+        }
+    }
+
+    // 显示奖励页面
+    function showRewardScreen() {
+        const rewardScreen = document.getElementById('reward-screen');
+        const badgeReceived = badges[currentLevel];
+        
+        document.getElementById('reward-icon').textContent = badgeReceived.split(' ')[0];
+        document.getElementById('reward-text').innerHTML = `你太聪明了！在第 ${currentLevel + 1} 关里答对上榜！<br><br>🏅 恭喜解锁新奖励勋章：<br><strong>${badgeReceived}</strong>`;
+        
+        rewardScreen.style.display = 'flex';
+        // 播放通关声音
+        speak(`恭喜通关！奖励你一枚${badgeReceived.split(' ')[1]}勋章！`);
+    }
+
+    function closeRewardScreen() {
+        document.getElementById('reward-screen').style.display = 'none';
+        backToMenu();
+    }
+
+    function backToMenu() {
+        clearInterval(timerInterval);
+        window.speechSynthesis.cancel();
+        document.getElementById('game-page').classList.remove('active');
+        document.getElementById('menu-page').classList.add('active');
+        renderLevelButtons(); // 刷新选关界面状态
+    }
+
+    // 重置进度
+    function resetProgress() {
+        if (confirm("确定要清除所有通关奖励，重新从第一关开始吗？")) {
+            unlockedLevel = 0;
+            localStorage.removeItem('grade1_识字量_levelProgress');
+            renderLevelButtons();
+        }
+    }
+</script>
+
+</body>
+</html>
