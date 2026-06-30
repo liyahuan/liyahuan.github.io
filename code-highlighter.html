@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码高亮工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/html.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">代码高亮工具</h1>
+            <p class="text-gray-600 mt-2">粘贴代码，一键生成高亮效果</p>
+        </header>
+        
+        <main>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label for="language" class="block text-sm font-medium text-gray-700 mb-1">选择语言</label>
+                        <select id="language" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="javascript">JavaScript</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                            <option value="sql">SQL</option>
+                            <option value="bash">Bash</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 md:flex md:items-end">
+                        <button id="highlight-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-300">
+                            生成高亮代码
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="code-input" class="block text-sm font-medium text-gray-700 mb-1">输入代码</label>
+                    <textarea id="code-input" class="w-full h-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="在此粘贴你的代码..."></textarea>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-medium text-gray-800 mb-4">高亮结果</h2>
+                <div class="relative">
+                    <button id="copy-btn" class="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm py-1 px-3 rounded-md transition-colors duration-300">
+                        复制代码
+                    </button>
+                    <pre class="bg-gray-900 rounded-md p-4 overflow-x-auto"><code id="code-output" class="language-javascript text-sm"></code></pre>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>© 2026 代码高亮工具 | 使用 Highlight.js 实现</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('code-input');
+            const codeOutput = document.getElementById('code-output');
+            const languageSelect = document.getElementById('language');
+            const highlightBtn = document.getElementById('highlight-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            
+            // 生成高亮代码
+            highlightBtn.addEventListener('click', function() {
+                const code = codeInput.value;
+                
+                if (!code) {
+                    alert('请输入代码');
+                    return;
+                }
+                
+                // 尝试检测JSON格式
+                let detectedLanguage = 'javascript';
+                try {
+                    // 检查是否是有效的JSON
+                    JSON.parse(code);
+                    detectedLanguage = 'json';
+                } catch (e) {
+                    // 如果不是JSON，使用自动检测
+                    const result = hljs.highlightAuto(code);
+                    detectedLanguage = result.language || 'javascript';
+                }
+                
+                // 更新语言选择下拉菜单
+                languageSelect.value = detectedLanguage;
+                
+                // 使用hljs.highlight()方法直接控制高亮过程
+                const highlightedResult = hljs.highlight(code, { language: detectedLanguage });
+                codeOutput.className = `language-${detectedLanguage}`;
+                codeOutput.innerHTML = highlightedResult.value;
+            });
+            
+            // 复制代码
+            copyBtn.addEventListener('click', function() {
+                const code = codeOutput.textContent;
+                navigator.clipboard.writeText(code).then(function() {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '已复制!';
+                    copyBtn.classList.add('bg-green-100', 'text-green-700');
+                    
+                    setTimeout(function() {
+                        copyBtn.textContent = originalText;
+                        copyBtn.classList.remove('bg-green-100', 'text-green-700');
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
